@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Queue Display — {{ department|title }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0f172a 100%); min-height: 100vh; }
+    .token-glow { box-shadow: 0 0 60px rgba(59,130,246,0.4), 0 0 120px rgba(59,130,246,0.2); }
+    .pulse-ring { animation: pulse-ring 2s ease-out infinite; }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59,130,246,0.5); }
+      70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(59,130,246,0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59,130,246,0); }
+    }
+    .ticker { animation: ticker 20s linear infinite; }
+    @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    .blink { animation: blink 1s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+  </style>
+</head>
+<body class="text-white flex flex-col min-h-screen">
+
+  <!-- Header -->
+  <header class="flex items-center justify-between px-10 py-5 border-b border-white/10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      </div>
+      <div>
+        <p class="font-bold text-lg leading-tight">MediFlow</p>
+        <p class="text-xs text-blue-300">Government District Hospital</p>
+      </div>
+    </div>
+    <div class="text-right">
+      <p class="text-2xl font-bold" id="clock">--:--:--</p>
+      <p class="text-xs text-slate-400" id="date-display"></p>
+    </div>
+  </header>
+
+  <!-- Department Banner -->
+  <div class="bg-blue-600/20 border-y border-blue-500/30 px-10 py-3 text-center">
+    <p class="text-blue-300 font-semibold uppercase tracking-widest text-sm">
+      {{ department|upper }} DEPARTMENT — PATIENT QUEUE
+    </p>
+  </div>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col items-center justify-center px-10 py-8">
+    <div class="w-full max-w-5xl">
+
+      <!-- Now Serving -->
+      <div class="text-center mb-12">
+        <p class="text-slate-400 text-lg font-medium uppercase tracking-widest mb-4">NOW SERVING</p>
+        <div class="inline-flex items-center justify-center w-64 h-64 rounded-full bg-blue-600/20 border-4 border-blue-500 token-glow pulse-ring mb-6">
+          <p class="text-9xl font-black" id="current-token">—</p>
+        </div>
+        <p class="text-slate-300 text-xl" id="serving-msg">Please proceed to the consultation room</p>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="grid grid-cols-3 gap-6 mb-10">
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
+          <p class="text-slate-400 text-sm uppercase tracking-wider mb-2">Waiting</p>
+          <p class="text-5xl font-bold text-yellow-400" id="waiting-count">—</p>
+        </div>
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
+          <p class="text-slate-400 text-sm uppercase tracking-wider mb-2">Connection</p>
+          <p class="text-lg font-semibold" id="conn-status">
+            <span class="text-yellow-400">Connecting...</span>
+          </p>
+        </div>
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
+          <p class="text-slate-400 text-sm uppercase tracking-wider mb-2">Department</p>
+          <p class="text-2xl font-bold text-blue-400 capitalize">{{ department }}</p>
+        </div>
+      </div>
+
+      <!-- Notice -->
+      <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-6 py-4 text-center">
+        <p class="text-yellow-300 text-sm">
+          <span class="font-bold">📢 Notice:</span>
+          Please keep your token slip ready. Missing patients will be moved to the end of the queue.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Ticker -->
+  <div class="bg-blue-900/50 border-t border-white/10 py-2 overflow-hidden">
+    <p class="ticker text-sm text-blue-300 whitespace-nowrap">
+      🏥 Welcome to Government District Hospital &nbsp;|&nbsp;
+      Emergency: 108 &nbsp;|&nbsp;
+      Please maintain silence in the hospital premises &nbsp;|&nbsp;
+      Carry your previous medical records for consultation &nbsp;|&nbsp;
+      MediFlow Smart Patient Management System
+    </p>
+  </div>
+
+  <script>
+    // Clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString('en-IN');
+      document.getElementById('date-display').textContent = now.toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // WebSocket
+    const department = "{{ department }}";
+    const wsUrl = `ws://${window.location.host}/ws/queue/${department}/`;
+    let ws;
+
+    function connect() {
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        document.getElementById('conn-status').innerHTML = '<span class="text-green-400">🟢 Live</span>';
+      };
+
+      ws.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        if (data.type === 'queue_update') {
+          const token = data.current_token;
+          document.getElementById('current-token').textContent = token ?? '—';
+          document.getElementById('waiting-count').textContent = data.waiting_count ?? '—';
+          if (token) {
+            document.getElementById('serving-msg').textContent = `Token #${token} — Please proceed to the consultation room`;
+          }
+        }
+      };
+
+      ws.onclose = () => {
+        document.getElementById('conn-status').innerHTML = '<span class="text-red-400">🔴 Reconnecting...</span>';
+        setTimeout(connect, 3000);
+      };
+
+      ws.onerror = () => ws.close();
+    }
+
+    connect();
+    setInterval(() => { if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'ping' })); }, 30000);
+  </script>
+</body>
+</html>

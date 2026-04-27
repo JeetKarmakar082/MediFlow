@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+{% block title %}Queue Management — MediFlow{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-800">Queue Management</h1>
+    <p class="text-slate-500 text-sm mt-1">Monitor and manage patient queues across departments</p>
+  </div>
+  <div class="flex gap-3">
+    <select id="dept-filter" onchange="loadQueue()" class="border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <option value="">All Departments</option>
+    </select>
+    <button onclick="callNext()" class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
+      <i class="fas fa-arrow-right"></i> Call Next
+    </button>
+    <button onclick="openTokenModal()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
+      <i class="fas fa-ticket-alt"></i> Issue Token
+    </button>
+  </div>
+</div>
+
+<!-- Status Bar -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 text-center">
+    <p class="text-2xl font-bold text-yellow-600" id="q-waiting">—</p>
+    <p class="text-xs text-slate-500 mt-1">Waiting</p>
+  </div>
+  <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 text-center">
+    <p class="text-2xl font-bold text-blue-600" id="q-current">—</p>
+    <p class="text-xs text-slate-500 mt-1">Now Serving</p>
+  </div>
+  <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 text-center">
+    <p class="text-2xl font-bold text-red-600" id="q-critical">—</p>
+    <p class="text-xs text-slate-500 mt-1">Critical</p>
+  </div>
+  <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 text-center">
+    <p class="text-2xl font-bold text-green-600" id="q-done">—</p>
+    <p class="text-xs text-slate-500 mt-1">Completed Today</p>
+  </div>
+</div>
+
+<!-- Queue Table -->
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+  <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+    <h2 class="font-semibold text-slate-800">Active Queue</h2>
+    <button onclick="loadQueue()" class="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
+      <i class="fas fa-sync-alt"></i> Refresh
+    </button>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead>
+        <tr class="bg-slate-50 border-b border-slate-100">
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Token</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Patient</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Department</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Priority</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Status</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Wait Time</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="queue-table-body">
+        <tr><td colspan="7" class="text-center py-12 text-slate-400">
+          <i class="fas fa-spinner fa-spin text-2xl mb-2 block"></i>Loading queue...
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Issue Token Modal -->
+<div id="token-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+    <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+      <h3 class="font-bold text-lg text-slate-800">Issue Queue Token</h3>
+      <button onclick="closeTokenModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <div class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Patient *</label>
+        <div class="relative">
+          <input type="text" id="token-patient-search" autocomplete="off"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Search by name or phone..." />
+          <input type="hidden" id="token-patient-id" />
+          <div id="token-patient-dropdown"
+            class="absolute z-50 w-full bg-white border border-slate-200 rounded-xl shadow-lg mt-1 hidden max-h-48 overflow-y-auto"></div>
+        </div>
+        <p class="text-xs mt-1" id="token-patient-label"></p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Department *</label>
+        <select id="token-dept" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Loading departments...</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Priority (Triage Score)</label>
+        <select id="token-triage" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="5">5 — Minor (Non-urgent)</option>
+          <option value="4">4 — Semi-Urgent</option>
+          <option value="3">3 — Urgent</option>
+          <option value="2">2 — Emergency</option>
+          <option value="1">1 — Critical (Immediate)</option>
+        </select>
+      </div>
+      <div id="token-error" class="hidden text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg"></div>
+      <div class="flex gap-3 pt-2">
+        <button onclick="closeTokenModal()" class="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50">Cancel</button>
+        <button onclick="submitToken()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-medium transition-colors">
+          <i class="fas fa-ticket-alt mr-2"></i>Issue Token
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const triageLabels  = { 1:'Critical', 2:'Emergency', 3:'Urgent', 4:'Semi-Urgent', 5:'Minor' };
+  const triageClasses = { 1:'triage-1', 2:'triage-2', 3:'triage-3', 4:'triage-4', 5:'triage-5' };
+  const statusClasses = {
+    waiting:'bg-yellow-100 text-yellow-700', called:'bg-blue-100 text-blue-700',
+    in_progress:'bg-purple-100 text-purple-700', done:'bg-green-100 text-green-700',
+    skipped:'bg-slate-100 text-slate-500',
+  };
+
+  function waitTime(created) {
+    const mins = Math.floor((Date.now() - new Date(created)) / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return mins + ' min';
+    return Math.floor(mins/60) + 'h ' + (mins%60) + 'm';
+  }
+
+  async function loadQueue() {
+    const dept = document.getElementById('dept-filter').value;
+    // Show waiting AND called tokens — both are active in the queue
+    const statusFilter = 'status=waiting&status=called&status=in_progress';
+    const url = '/api/queue/?' + (dept ? `department=${dept}&` : '') + statusFilter;
+    const res = await apiFetch(url);
+    if (!res) return;
+    const data = await res.json();
+    const tokens = data.results || data;
+
+    // Waiting = waiting + called (not yet seen)
+    const waitingTokens = tokens.filter(t => t.status === 'waiting' || t.status === 'called');
+    document.getElementById('q-waiting').textContent = waitingTokens.length;
+
+    // Critical = score 1 OR score 2 (both are emergency-level)
+    document.getElementById('q-critical').textContent =
+      tokens.filter(t => t.triage_score <= 2).length;
+
+    const current = tokens.find(t => t.status === 'in_progress');
+    document.getElementById('q-current').textContent = current ? '#' + current.token_number : '—';
+
+    const tbody = document.getElementById('queue-table-body');
+    if (!tokens.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-slate-400">Queue is empty</td></tr>';
+      return;
+    }
+    tbody.innerHTML = tokens.map(t => {
+      // Highlight rows: score 1 = red bg, score 2 = orange bg
+      const rowBg = t.triage_score === 1 ? 'bg-red-50' : t.triage_score === 2 ? 'bg-orange-50' : '';
+      // Show emergency badge for score 1 & 2
+      const emergencyBadge = t.triage_score <= 2
+        ? `<span class="ml-1 text-xs font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">
+             <i class="fas fa-exclamation-triangle mr-0.5"></i>${t.triage_score === 1 ? 'CRITICAL' : 'EMERGENCY'}
+           </span>`
+        : '';
+      return `
+      <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors ${rowBg}">
+        <td class="px-5 py-4">
+          <div class="flex flex-col">
+            <span class="text-lg font-bold text-slate-800">#${t.token_number}</span>
+            <span class="text-xs text-slate-400">${t.department_name || '—'}</span>
+          </div>
+          ${emergencyBadge}
+        </td>
+        <td class="px-5 py-4">
+          <p class="text-sm font-medium text-slate-800">${t.patient_name || 'Patient #' + t.patient}</p>
+          <p class="text-xs text-slate-400">${t.patient_phone || ''}</p>
+        </td>
+        <td class="px-5 py-4">
+          <span class="text-sm font-semibold text-slate-700">${t.department_name || '—'}</span>
+        </td>
+        <td class="px-5 py-4">
+          <span class="text-xs font-semibold px-2 py-1 rounded-full ${triageClasses[t.triage_score] || ''}">
+            ${triageLabels[t.triage_score] || t.triage_score}
+          </span>
+        </td>
+        <td class="px-5 py-4">
+          <span class="text-xs font-medium px-2 py-1 rounded-full capitalize ${statusClasses[t.status] || ''}">
+            ${t.status.replace('_',' ')}
+          </span>
+        </td>
+        <td class="px-5 py-4 text-xs text-slate-500">${waitTime(t.created_at)}</td>
+        <td class="px-5 py-4">
+          <div class="flex gap-2">
+            <button onclick="completeToken(${t.id})" class="text-xs bg-green-50 text-green-600 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors">Done</button>
+            <button onclick="skipToken(${t.id})" class="text-xs bg-slate-50 text-slate-500 hover:bg-slate-100 px-3 py-1.5 rounded-lg transition-colors">Skip</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function callNext() {
+    const dept = document.getElementById('dept-filter').value || 'general';
+    const res = await apiFetch('/api/queue/call-next/', { method: 'POST', body: JSON.stringify({ department: dept }) });
+    if (!res) return;
+    const data = await res.json();
+    if (res.ok && data.token_number) {
+      showToast(`Token #${data.token_number} called — ${data.patient_name}`);
+      loadQueue();
+    } else {
+      showToast(data.message || 'No patients waiting', 'info');
+    }
+  }
+
+  async function completeToken(id) {
+    await apiFetch(`/api/queue/${id}/complete/`, { method: 'PATCH' });
+    loadQueue();
+  }
+
+  async function skipToken(id) {
+    await apiFetch(`/api/queue/${id}/`, { method: 'PATCH', body: JSON.stringify({ status: 'skipped' }) });
+    loadQueue();
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.createElement('div');
+    t.className = `fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${type === 'success' ? 'bg-green-600' : 'bg-blue-600'}`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+
+  loadQueue();
+  setInterval(loadQueue, 10000);
+
+  // Load department filter options
+  apiFetch('/api/departments/').then(r => r && r.json()).then(data => {
+    if (!data) return;
+    const depts = data.results || data;
+    const sel = document.getElementById('dept-filter');
+    depts.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.code;
+      opt.textContent = d.name;
+      sel.appendChild(opt);
+    });
+  });
+
+  // ── Issue Token Modal ──────────────────────────────────────────────────────
+  function openTokenModal() {
+    document.getElementById('token-modal').classList.remove('hidden');
+    loadDepartmentOptions('token-dept');
+  }
+
+  function closeTokenModal() {
+    document.getElementById('token-modal').classList.add('hidden');
+    document.getElementById('token-patient-search').value = '';
+    document.getElementById('token-patient-id').value = '';
+    document.getElementById('token-patient-label').textContent = '';
+    document.getElementById('token-patient-dropdown').classList.add('hidden');
+    document.getElementById('token-error').classList.add('hidden');
+  }
+
+  let tokenSearchTimer = null;
+  document.getElementById('token-patient-search').addEventListener('input', function () {
+    clearTimeout(tokenSearchTimer);
+    document.getElementById('token-patient-id').value = '';
+    document.getElementById('token-patient-label').textContent = '';
+    const q = this.value.trim();
+    if (q.length < 2) { document.getElementById('token-patient-dropdown').classList.add('hidden'); return; }
+    tokenSearchTimer = setTimeout(() => searchTokenPatients(q), 300);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#token-patient-search') && !e.target.closest('#token-patient-dropdown'))
+      document.getElementById('token-patient-dropdown').classList.add('hidden');
+  });
+
+  async function searchTokenPatients(q) {
+    const res = await apiFetch(`/api/patients/?name=${encodeURIComponent(q)}`);
+    if (!res) return;
+    const data = await res.json();
+    const patients = data.results || data;
+    const dropdown = document.getElementById('token-patient-dropdown');
+    if (!patients.length) {
+      dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-slate-400">No patients found</div>';
+      dropdown.classList.remove('hidden');
+      return;
+    }
+    dropdown.innerHTML = patients.map(p => `
+      <div onclick="selectTokenPatient(${p.id}, '${p.name.replace(/'/g,"\\'")}', '${p.phone}')"
+        class="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors">
+        <p class="text-sm font-medium text-slate-800">${p.name}</p>
+        <p class="text-xs text-slate-400">${p.phone} &nbsp;·&nbsp; Age ${p.age}</p>
+      </div>
+    `).join('');
+    dropdown.classList.remove('hidden');
+  }
+
+  function selectTokenPatient(id, name, phone) {
+    document.getElementById('token-patient-id').value = id;
+    document.getElementById('token-patient-search').value = name;
+    document.getElementById('token-patient-label').innerHTML =
+      `<i class="fas fa-check-circle text-green-500 mr-1"></i><span class="text-green-600">${name} · ${phone}</span>`;
+    document.getElementById('token-patient-dropdown').classList.add('hidden');
+  }
+
+  async function loadDepartmentOptions(selectId) {
+    const res = await apiFetch('/api/departments/');
+    if (!res) return;
+    const data = await res.json();
+    const depts = data.results || data;
+    const select = document.getElementById(selectId);
+    select.innerHTML = depts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+  }
+
+  async function submitToken() {
+    const patientId = document.getElementById('token-patient-id').value;
+    const dept      = document.getElementById('token-dept').value;
+    const triage    = document.getElementById('token-triage').value;
+    const errEl     = document.getElementById('token-error');
+
+    if (!patientId) {
+      errEl.textContent = 'Please select a patient.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    errEl.classList.add('hidden');
+
+    const res = await apiFetch('/api/queue/', {
+      method: 'POST',
+      body: JSON.stringify({ patient: Number(patientId), department: dept, triage_score: Number(triage) })
+    });
+    if (!res) return;
+    if (res.ok) {
+      const t = await res.json();
+      closeTokenModal();
+      showToast(`Token #${t.token_number} issued for ${dept}`);
+      loadQueue();
+    } else {
+      const err = await res.json();
+      errEl.textContent = JSON.stringify(err);
+      errEl.classList.remove('hidden');
+    }
+  }
+</script>
+{% endblock %}

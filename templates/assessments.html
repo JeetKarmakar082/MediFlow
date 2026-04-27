@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% block title %}Triage Assessments — MediFlow{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-800">Triage Assessments</h1>
+    <p class="text-slate-500 text-sm mt-1">All completed AI triage assessments</p>
+  </div>
+  <a href="/triage/" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
+    <i class="fas fa-plus"></i> New Assessment
+  </a>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6 flex flex-wrap gap-3">
+  <div class="flex-1 min-w-48 relative">
+    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+    <input id="search-input" type="text" placeholder="Search patient name..."
+      class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+  </div>
+  <select id="score-filter" class="border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <option value="">All Scores</option>
+    <option value="1">Score 1 — Critical</option>
+    <option value="2">Score 2 — Emergency</option>
+    <option value="3">Score 3 — Urgent</option>
+    <option value="4">Score 4 — Semi-Urgent</option>
+    <option value="5">Score 5 — Minor</option>
+  </select>
+  <select id="source-filter" class="border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <option value="">All Sources</option>
+    <option value="gemini">Gemini AI</option>
+    <option value="rule_based">Rule-Based</option>
+  </select>
+</div>
+
+<!-- Stats Row -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+  <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-100 text-center">
+    <p class="text-2xl font-bold text-slate-800" id="count-total">—</p>
+    <p class="text-xs text-slate-500 mt-1">Total</p>
+  </div>
+  <div class="bg-white rounded-xl p-4 shadow-sm border border-red-100 text-center">
+    <p class="text-2xl font-bold text-red-600" id="count-1">—</p>
+    <p class="text-xs text-slate-500 mt-1">Critical</p>
+  </div>
+  <div class="bg-white rounded-xl p-4 shadow-sm border border-orange-100 text-center">
+    <p class="text-2xl font-bold text-orange-600" id="count-2">—</p>
+    <p class="text-xs text-slate-500 mt-1">Emergency</p>
+  </div>
+  <div class="bg-white rounded-xl p-4 shadow-sm border border-yellow-100 text-center">
+    <p class="text-2xl font-bold text-yellow-600" id="count-3">—</p>
+    <p class="text-xs text-slate-500 mt-1">Urgent</p>
+  </div>
+  <div class="bg-white rounded-xl p-4 shadow-sm border border-blue-100 text-center">
+    <p class="text-2xl font-bold text-blue-600" id="count-gemini">—</p>
+    <p class="text-xs text-slate-500 mt-1">By Gemini AI</p>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+  <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+    <h2 class="font-semibold text-slate-800">Assessment Records</h2>
+    <span id="result-count" class="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">Loading...</span>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead>
+        <tr class="bg-slate-50 border-b border-slate-100">
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Patient</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Score</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Vitals</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Symptoms</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Source</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Assessed By</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Time</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Action</th>
+        </tr>
+      </thead>
+      <tbody id="assessment-tbody">
+        <tr><td colspan="8" class="text-center py-12 text-slate-400">
+          <i class="fas fa-spinner fa-spin text-2xl mb-2 block"></i>Loading...
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div id="detail-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+      <h3 class="font-bold text-lg text-slate-800">Assessment Detail</h3>
+      <button onclick="document.getElementById('detail-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <div id="detail-content" class="p-6 space-y-4"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const scoreConfig = {
+    1: { cls: 'triage-1', label: 'CRITICAL',    color: 'text-red-600' },
+    2: { cls: 'triage-2', label: 'EMERGENCY',   color: 'text-orange-600' },
+    3: { cls: 'triage-3', label: 'URGENT',      color: 'text-yellow-600' },
+    4: { cls: 'triage-4', label: 'SEMI-URGENT', color: 'text-green-600' },
+    5: { cls: 'triage-5', label: 'MINOR',       color: 'text-blue-600' },
+  };
+
+  let allData = [];
+
+  async function loadAssessments() {
+    const res = await apiFetch('/api/triage/');
+    if (!res) return;
+    const data = await res.json();
+    allData = data.results || data;
+    renderTable(allData);
+    updateStats(allData);
+  }
+
+  function updateStats(items) {
+    document.getElementById('count-total').textContent = items.length;
+    document.getElementById('count-1').textContent = items.filter(a => a.ai_score === 1).length;
+    document.getElementById('count-2').textContent = items.filter(a => a.ai_score === 2).length;
+    document.getElementById('count-3').textContent = items.filter(a => a.ai_score === 3).length;
+    document.getElementById('count-gemini').textContent = items.filter(a => a.ai_source === 'gemini').length;
+  }
+
+  function renderTable(items) {
+    document.getElementById('result-count').textContent = items.length + ' records';
+    const tbody = document.getElementById('assessment-tbody');
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center py-12 text-slate-400">No assessments found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(a => `
+      <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+        <td class="px-5 py-4">
+          <p class="text-sm font-medium text-slate-800">${a.patient_name || 'Patient #' + a.patient}</p>
+          <p class="text-xs text-slate-400">#${a.patient}</p>
+        </td>
+        <td class="px-5 py-4">
+          <span class="text-xs font-bold px-2 py-1 rounded-full ${scoreConfig[a.ai_score]?.cls || ''}">
+            ${scoreConfig[a.ai_score]?.label || a.ai_score}
+          </span>
+        </td>
+        <td class="px-5 py-4 text-xs text-slate-500 whitespace-nowrap">
+          ${a.bp_systolic}/${a.bp_diastolic} mmHg<br>
+          ${a.pulse} bpm · ${a.oxygen_level}% SpO2<br>
+          ${a.temperature}°C · Pain ${a.pain_scale}/10
+        </td>
+        <td class="px-5 py-4 text-xs text-slate-600 max-w-xs">
+          <p class="truncate w-40">${a.symptoms}</p>
+        </td>
+        <td class="px-5 py-4">
+          ${a.ai_source === 'gemini'
+            ? '<span class="text-xs font-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full"><i class="fas fa-robot mr-1"></i>Gemini AI</span>'
+            : '<span class="text-xs font-medium bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full"><i class="fas fa-calculator mr-1"></i>Rule-Based</span>'
+          }
+        </td>
+        <td class="px-5 py-4 text-xs text-slate-500">${a.assessed_by || '—'}</td>
+        <td class="px-5 py-4 text-xs text-slate-400 whitespace-nowrap">${new Date(a.assessed_at).toLocaleString()}</td>
+        <td class="px-5 py-4">
+          <button onclick="showDetail(${a.id})" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors">
+            View
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function applyFilters() {
+    const search = document.getElementById('search-input').value.toLowerCase();
+    const score  = document.getElementById('score-filter').value;
+    const source = document.getElementById('source-filter').value;
+    let filtered = allData;
+    if (score)  filtered = filtered.filter(a => String(a.ai_score) === score);
+    if (source) filtered = filtered.filter(a => a.ai_source === source);
+    renderTable(filtered);
+  }
+
+  async function showDetail(id) {
+    const res = await apiFetch(`/api/triage/${id}/`);
+    if (!res) return;
+    const a = await res.json();
+    const cfg = scoreConfig[a.ai_score] || {};
+    document.getElementById('detail-content').innerHTML = `
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-slate-500 uppercase tracking-wider">Patient</p>
+          <p class="font-semibold text-slate-800">${a.patient_name || 'Patient #' + a.patient}</p>
+          <p class="text-xs text-slate-400">ID: ${a.patient}</p>
+        </div>
+        <span class="text-sm font-bold px-3 py-1.5 rounded-full ${cfg.cls || ''}">${cfg.label || a.ai_score}</span>
+      </div>
+      <hr class="border-slate-100">
+      <div>
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Vitals</p>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="bg-slate-50 rounded-xl p-3 text-center">
+            <p class="text-lg font-bold text-slate-800">${a.bp_systolic}/${a.bp_diastolic}</p>
+            <p class="text-xs text-slate-500">BP (mmHg)</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3 text-center">
+            <p class="text-lg font-bold text-slate-800">${a.pulse}</p>
+            <p class="text-xs text-slate-500">Pulse (bpm)</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3 text-center">
+            <p class="text-lg font-bold text-slate-800">${a.oxygen_level}%</p>
+            <p class="text-xs text-slate-500">SpO2</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3 text-center">
+            <p class="text-lg font-bold text-slate-800">${a.temperature}°C</p>
+            <p class="text-xs text-slate-500">Temperature</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3 text-center">
+            <p class="text-lg font-bold text-slate-800">${a.pain_scale}/10</p>
+            <p class="text-xs text-slate-500">Pain Scale</p>
+          </div>
+          <div class="bg-slate-50 rounded-xl p-3 text-center">
+            <p class="text-lg font-bold ${cfg.color || 'text-slate-800'}">${a.ai_score}</p>
+            <p class="text-xs text-slate-500">Triage Score</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Symptoms</p>
+        <p class="text-sm text-slate-700 bg-slate-50 rounded-xl p-3">${a.symptoms}</p>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Clinical Reasoning</p>
+        <p class="text-sm text-slate-700">${a.ai_reasoning}</p>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Recommended Action</p>
+        <p class="text-sm font-medium text-slate-800">${a.ai_action}</p>
+      </div>
+      <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-100">
+        <span>Assessed by: ${a.assessed_by || 'Unknown'}</span>
+        <span>${new Date(a.assessed_at).toLocaleString()}</span>
+        <span>${a.ai_source === 'gemini' ? '🤖 Gemini AI' : '⚙️ Rule-Based'}</span>
+      </div>
+    `;
+    document.getElementById('detail-modal').classList.remove('hidden');
+  }
+
+  document.getElementById('search-input').addEventListener('input', applyFilters);
+  document.getElementById('score-filter').addEventListener('change', applyFilters);
+  document.getElementById('source-filter').addEventListener('change', applyFilters);
+
+  loadAssessments();
+</script>
+{% endblock %}

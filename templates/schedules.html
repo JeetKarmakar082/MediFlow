@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+{% block title %}Doctor Schedules — MediFlow{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-800">Doctor Schedules</h1>
+    <p class="text-slate-500 text-sm mt-1">Weekly availability schedules for all doctors</p>
+  </div>
+  <button onclick="openModal()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
+    <i class="fas fa-plus"></i> Add Schedule
+  </button>
+</div>
+
+<!-- Day filter -->
+<div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6 flex flex-wrap gap-2">
+  <button onclick="filterDay('')" id="day-all" class="day-btn px-4 py-2 rounded-xl text-sm font-medium bg-blue-600 text-white transition-colors">All Days</button>
+  <button onclick="filterDay(0)" id="day-0" class="day-btn px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Monday</button>
+  <button onclick="filterDay(1)" id="day-1" class="day-btn px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Tuesday</button>
+  <button onclick="filterDay(2)" id="day-2" class="day-btn px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Wednesday</button>
+  <button onclick="filterDay(3)" id="day-3" class="day-btn px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Thursday</button>
+  <button onclick="filterDay(4)" id="day-4" class="day-btn px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Friday</button>
+  <button onclick="filterDay(5)" id="day-5" class="day-btn px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Saturday</button>
+  <button onclick="filterDay(6)" id="day-6" class="day-btn px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Sunday</button>
+</div>
+
+<!-- Today's Schedule highlight -->
+<div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-6">
+  <h2 class="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+    <i class="fas fa-calendar-day text-blue-600"></i>
+    Today's Available Doctors
+    <span id="today-day-label" class="text-xs font-normal text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full"></span>
+  </h2>
+  <div id="today-doctors" class="flex flex-wrap gap-3">
+    <p class="text-sm text-blue-600">Loading...</p>
+  </div>
+</div>
+
+<!-- Full Schedule Table -->
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+  <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+    <h2 class="font-semibold text-slate-800">All Schedules</h2>
+    <span id="schedule-count" class="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">Loading...</span>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead>
+        <tr class="bg-slate-50 border-b border-slate-100">
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Doctor</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Specialization</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Day</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Time</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Max Patients</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Status</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="schedule-tbody">
+        <tr><td colspan="7" class="text-center py-12 text-slate-400">
+          <i class="fas fa-spinner fa-spin text-2xl mb-2 block"></i>Loading...
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Schedule Modal -->
+<div id="schedule-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+    <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+      <h3 class="font-bold text-lg text-slate-800" id="modal-title">Add Doctor Schedule</h3>
+      <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <form id="schedule-form" class="p-6 space-y-4">
+      <input type="hidden" id="edit-id" />
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Doctor *</label>
+        <select name="doctor" id="doctor-select" required
+          class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Loading doctors...</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Day of Week *</label>
+        <select name="day_of_week" required
+          class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Select day</option>
+          <option value="0">Monday</option>
+          <option value="1">Tuesday</option>
+          <option value="2">Wednesday</option>
+          <option value="3">Thursday</option>
+          <option value="4">Friday</option>
+          <option value="5">Saturday</option>
+          <option value="6">Sunday</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Start Time *</label>
+          <input name="start_time" type="time" required
+            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">End Time *</label>
+          <input name="end_time" type="time" required
+            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Max Patients</label>
+        <input name="max_patients" type="number" value="20" min="1" max="200"
+          class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div class="flex items-center gap-3">
+        <input name="is_active" type="checkbox" id="is-active-check" checked
+          class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500" />
+        <label for="is-active-check" class="text-sm font-medium text-slate-700">Active</label>
+      </div>
+      <div id="form-error" class="hidden text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg"></div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="closeModal()" class="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50">Cancel</button>
+        <button type="submit" id="submit-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-medium transition-colors">Save Schedule</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const specColors = {
+    general:'bg-blue-100 text-blue-700', emergency:'bg-red-100 text-red-700',
+    cardiology:'bg-pink-100 text-pink-700', orthopedics:'bg-orange-100 text-orange-700',
+    pediatrics:'bg-yellow-100 text-yellow-700', neurology:'bg-purple-100 text-purple-700',
+    gynecology:'bg-rose-100 text-rose-700', surgery:'bg-green-100 text-green-700',
+  };
+
+  let allSchedules = [];
+  let doctorMap = {};
+
+  async function loadSchedules() {
+    const res = await apiFetch('/api/doctors/');
+    if (!res) return;
+    const data = await res.json();
+    const doctors = data.results || data;
+
+    // Build doctor map for quick lookup
+    doctorMap = {};
+    doctors.forEach(d => { doctorMap[d.id] = d; });
+
+    // Populate doctor dropdown
+    const sel = document.getElementById('doctor-select');
+    sel.innerHTML = '<option value="">Select doctor</option>' +
+      doctors.map(d => `<option value="${d.id}">Dr. ${d.name} (${d.specialization})</option>`).join('');
+
+    // Flatten schedules
+    allSchedules = [];
+    doctors.forEach(d => {
+      (d.schedules || []).forEach(s => {
+        allSchedules.push({ ...s, doctor_name: d.name, specialization: d.specialization, is_available: d.is_available });
+      });
+    });
+
+    // Today's doctors
+    const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+    document.getElementById('today-day-label').textContent = days[todayIdx];
+    const todaySchedules = allSchedules.filter(s => s.day_of_week === todayIdx && s.is_active);
+    const todayEl = document.getElementById('today-doctors');
+    if (!todaySchedules.length) {
+      todayEl.innerHTML = '<p class="text-sm text-blue-500">No doctors scheduled today</p>';
+    } else {
+      todayEl.innerHTML = todaySchedules.map(s => `
+        <div class="flex items-center gap-2 bg-white rounded-xl px-3 py-2 shadow-sm border border-blue-100">
+          <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">${s.doctor_name.charAt(0)}</div>
+          <div>
+            <p class="text-sm font-medium text-slate-800">Dr. ${s.doctor_name}</p>
+            <p class="text-xs text-slate-500">${s.start_time} – ${s.end_time}</p>
+          </div>
+          <span class="ml-2 w-2 h-2 rounded-full ${s.is_available ? 'bg-green-500' : 'bg-slate-300'}"></span>
+        </div>
+      `).join('');
+    }
+
+    renderTable(allSchedules);
+  }
+
+  function renderTable(items) {
+    document.getElementById('schedule-count').textContent = items.length + ' schedules';
+    const tbody = document.getElementById('schedule-tbody');
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-slate-400">No schedules found. Click "Add Schedule" to create one.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(s => `
+      <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+        <td class="px-5 py-4">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">${s.doctor_name.charAt(0)}</div>
+            <p class="text-sm font-medium text-slate-800">Dr. ${s.doctor_name}</p>
+          </div>
+        </td>
+        <td class="px-5 py-4">
+          <span class="text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${specColors[s.specialization] || 'bg-slate-100 text-slate-600'}">${s.specialization}</span>
+        </td>
+        <td class="px-5 py-4 text-sm text-slate-700 font-medium">${days[s.day_of_week]}</td>
+        <td class="px-5 py-4 text-sm text-slate-600">${s.start_time} – ${s.end_time}</td>
+        <td class="px-5 py-4 text-sm text-slate-600">${s.max_patients} patients</td>
+        <td class="px-5 py-4">
+          <span class="text-xs font-medium px-2 py-1 rounded-full ${s.is_active ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}">
+            ${s.is_active ? 'Active' : 'Inactive'}
+          </span>
+        </td>
+        <td class="px-5 py-4">
+          <div class="flex gap-2">
+            <button onclick="editSchedule(${s.id})" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors">Edit</button>
+            <button onclick="deleteSchedule(${s.id})" class="text-xs bg-red-50 text-red-500 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filterDay(day) {
+    document.querySelectorAll('.day-btn').forEach(b => {
+      b.className = 'day-btn px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors';
+    });
+    const activeId = day === '' ? 'day-all' : `day-${day}`;
+    document.getElementById(activeId).className = 'day-btn px-4 py-2 rounded-xl text-sm font-medium bg-blue-600 text-white transition-colors';
+    const filtered = day === '' ? allSchedules : allSchedules.filter(s => s.day_of_week === day);
+    renderTable(filtered);
+  }
+
+  // ── Modal ──────────────────────────────────────────────────────────────────
+  function openModal(schedule = null) {
+    document.getElementById('schedule-form').reset();
+    document.getElementById('form-error').classList.add('hidden');
+    document.getElementById('edit-id').value = '';
+    document.getElementById('is-active-check').checked = true;
+
+    if (schedule) {
+      document.getElementById('modal-title').textContent = 'Edit Schedule';
+      document.getElementById('edit-id').value = schedule.id;
+      document.getElementById('doctor-select').value = schedule.doctor;
+      document.querySelector('[name=day_of_week]').value = schedule.day_of_week;
+      document.querySelector('[name=start_time]').value = schedule.start_time;
+      document.querySelector('[name=end_time]').value = schedule.end_time;
+      document.querySelector('[name=max_patients]').value = schedule.max_patients;
+      document.getElementById('is-active-check').checked = schedule.is_active;
+    } else {
+      document.getElementById('modal-title').textContent = 'Add Doctor Schedule';
+    }
+    document.getElementById('schedule-modal').classList.remove('hidden');
+  }
+
+  function closeModal() {
+    document.getElementById('schedule-modal').classList.add('hidden');
+  }
+
+  document.getElementById('schedule-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const editId = document.getElementById('edit-id').value;
+    const fd = new FormData(e.target);
+    const body = {
+      doctor:       Number(fd.get('doctor')),
+      day_of_week:  Number(fd.get('day_of_week')),
+      start_time:   fd.get('start_time'),
+      end_time:     fd.get('end_time'),
+      max_patients: Number(fd.get('max_patients') || 20),
+      is_active:    document.getElementById('is-active-check').checked,
+    };
+
+    const url    = editId ? `/api/schedules/${editId}/` : '/api/schedules/';
+    const method = editId ? 'PUT' : 'POST';
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    const res = await apiFetch(url, { method, body: JSON.stringify(body) });
+    btn.disabled = false;
+    btn.textContent = 'Save Schedule';
+
+    if (!res) return;
+    if (res.ok) {
+      closeModal();
+      loadSchedules();
+    } else {
+      const err = await res.json();
+      const errEl = document.getElementById('form-error');
+      errEl.textContent = JSON.stringify(err);
+      errEl.classList.remove('hidden');
+    }
+  });
+
+  async function editSchedule(id) {
+    const res = await apiFetch(`/api/schedules/${id}/`);
+    if (!res) return;
+    const s = await res.json();
+    openModal(s);
+  }
+
+  async function deleteSchedule(id) {
+    if (!confirm('Delete this schedule?')) return;
+    const res = await apiFetch(`/api/schedules/${id}/`, { method: 'DELETE' });
+    if (res && (res.ok || res.status === 204)) loadSchedules();
+  }
+
+  loadSchedules();
+</script>
+{% endblock %}

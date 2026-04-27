@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — MediFlow{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-8">
+  <h1 class="text-2xl font-bold text-slate-800">Dashboard</h1>
+  <p class="text-slate-500 text-sm mt-1">Real-time overview of hospital patient flow</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+  <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 card-hover">
+    <div class="flex items-center justify-between mb-4">
+      <div class="w-11 h-11 bg-blue-100 rounded-xl flex items-center justify-center">
+        <i class="fas fa-users text-blue-600"></i>
+      </div>
+      <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">Today</span>
+    </div>
+    <p class="text-3xl font-bold text-slate-800" id="stat-total">—</p>
+    <p class="text-sm text-slate-500 mt-1">Total Patients</p>
+  </div>
+
+  <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 card-hover">
+    <div class="flex items-center justify-between mb-4">
+      <div class="w-11 h-11 bg-yellow-100 rounded-xl flex items-center justify-center">
+        <i class="fas fa-clock text-yellow-600"></i>
+      </div>
+      <span class="text-xs font-medium text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full">Live</span>
+    </div>
+    <p class="text-3xl font-bold text-slate-800" id="stat-waiting">—</p>
+    <p class="text-sm text-slate-500 mt-1">Waiting</p>
+  </div>
+
+  <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 card-hover">
+    <div class="flex items-center justify-between mb-4">
+      <div class="w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center">
+        <i class="fas fa-check-circle text-green-600"></i>
+      </div>
+      <span class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">Today</span>
+    </div>
+    <p class="text-3xl font-bold text-slate-800" id="stat-done">—</p>
+    <p class="text-sm text-slate-500 mt-1">Completed</p>
+  </div>
+
+  <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 card-hover">
+    <div class="flex items-center justify-between mb-4">
+      <div class="w-11 h-11 bg-red-100 rounded-xl flex items-center justify-center">
+        <i class="fas fa-exclamation-triangle text-red-600"></i>
+      </div>
+      <span class="text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded-full">Active</span>
+    </div>
+    <p class="text-3xl font-bold text-slate-800" id="stat-emergency">—</p>
+    <p class="text-sm text-slate-500 mt-1">Emergencies</p>
+  </div>
+</div>
+
+<!-- Middle Row -->
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-8">
+
+  <!-- Triage Breakdown -->
+  <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+    <h2 class="font-semibold text-slate-800 mb-5 flex items-center gap-2">
+      <i class="fas fa-chart-pie text-blue-500"></i> Triage Breakdown
+      <span class="text-xs font-normal text-slate-400">(all assessments)</span>
+    </h2>
+    <div class="space-y-3" id="triage-breakdown">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-red-500"></span>
+          <span class="text-sm text-slate-600">Critical (Level 1)</span>
+        </div>
+        <span class="font-bold text-slate-800" id="t1">—</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-orange-500"></span>
+          <span class="text-sm text-slate-600">Emergency (Level 2)</span>
+        </div>
+        <span class="font-bold text-slate-800" id="t2">—</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+          <span class="text-sm text-slate-600">Urgent (Level 3)</span>
+        </div>
+        <span class="font-bold text-slate-800" id="t3">—</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-green-500"></span>
+          <span class="text-sm text-slate-600">Semi-Urgent (Level 4)</span>
+        </div>
+        <span class="font-bold text-slate-800" id="t4">—</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+          <span class="text-sm text-slate-600">Minor (Level 5)</span>
+        </div>
+        <span class="font-bold text-slate-800" id="t5">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Doctor Availability -->
+  <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+    <h2 class="font-semibold text-slate-800 mb-5 flex items-center gap-2">
+      <i class="fas fa-user-md text-blue-500"></i> Doctor Availability
+    </h2>
+    <div class="flex items-center justify-center gap-8 py-4">
+      <div class="text-center">
+        <p class="text-4xl font-bold text-green-600" id="doc-available">—</p>
+        <p class="text-sm text-slate-500 mt-1">Available</p>
+      </div>
+      <div class="w-px h-12 bg-slate-200"></div>
+      <div class="text-center">
+        <p class="text-4xl font-bold text-slate-400" id="doc-total">—</p>
+        <p class="text-sm text-slate-500 mt-1">Total</p>
+      </div>
+    </div>
+    <div class="mt-4">
+      <div class="flex justify-between text-xs text-slate-500 mb-1">
+        <span>Availability</span>
+        <span id="doc-pct">—%</span>
+      </div>
+      <div class="w-full bg-slate-100 rounded-full h-2">
+        <div id="doc-bar" class="bg-green-500 h-2 rounded-full transition-all duration-500" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Queue by Department -->
+  <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+    <h2 class="font-semibold text-slate-800 mb-5 flex items-center gap-2">
+      <i class="fas fa-building text-blue-500"></i> Queue by Department
+    </h2>
+    <div id="dept-queue" class="space-y-3">
+      <p class="text-sm text-slate-400 text-center py-4">Loading...</p>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+  <h2 class="font-semibold text-slate-800 mb-5 flex items-center gap-2">
+    <i class="fas fa-bolt text-blue-500"></i> Quick Actions
+  </h2>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+    <a href="/patients/register/" class="flex flex-col items-center gap-3 p-4 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors">
+      <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+        <i class="fas fa-user-plus text-white"></i>
+      </div>
+      <span class="text-sm font-medium text-blue-700 text-center">Register Patient</span>
+    </a>
+    <a href="/triage/new/" class="flex flex-col items-center gap-3 p-4 bg-purple-50 hover:bg-purple-100 rounded-xl transition-colors">
+      <div class="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center">
+        <i class="fas fa-stethoscope text-white"></i>
+      </div>
+      <span class="text-sm font-medium text-purple-700 text-center">AI Triage</span>
+    </a>
+    <a href="/queue/" class="flex flex-col items-center gap-3 p-4 bg-green-50 hover:bg-green-100 rounded-xl transition-colors">
+      <div class="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center">
+        <i class="fas fa-ticket-alt text-white"></i>
+      </div>
+      <span class="text-sm font-medium text-green-700 text-center">Queue Management</span>
+    </a>
+    <a href="/emergency/new/" class="flex flex-col items-center gap-3 p-4 bg-red-50 hover:bg-red-100 rounded-xl transition-colors">
+      <div class="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center">
+        <i class="fas fa-ambulance text-white"></i>
+      </div>
+      <span class="text-sm font-medium text-red-700 text-center">Emergency Alert</span>
+    </a>
+  </div>
+
+  <!-- Records & Reports Row -->
+  <div class="border-t border-slate-100 pt-4">
+    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Records & Reports</p>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <a href="/assessments/" class="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors group">
+        <div class="w-9 h-9 bg-indigo-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
+          <i class="fas fa-clipboard-list text-indigo-600 text-sm"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-slate-700">Triage History</p>
+          <p class="text-xs text-slate-400">All assessments</p>
+        </div>
+      </a>
+      <a href="/schedules/" class="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors group">
+        <div class="w-9 h-9 bg-cyan-100 rounded-lg flex items-center justify-center group-hover:bg-cyan-200 transition-colors">
+          <i class="fas fa-calendar-alt text-cyan-600 text-sm"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-slate-700">Doctor Schedules</p>
+          <p class="text-xs text-slate-400">Weekly availability</p>
+        </div>
+      </a>
+      <a href="/records/" class="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors group">
+        <div class="w-9 h-9 bg-teal-100 rounded-lg flex items-center justify-center group-hover:bg-teal-200 transition-colors">
+          <i class="fas fa-file-medical text-teal-600 text-sm"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-slate-700">Medical Records</p>
+          <p class="text-xs text-slate-400">Patient visit history</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  async function loadStats() {
+    try {
+      const res = await apiFetch('/api/dashboard/stats/');
+      if (!res || !res.ok) return;
+      const data = await res.json();
+
+      document.getElementById('stat-total').textContent = data.today.total_patients;
+      document.getElementById('stat-waiting').textContent = data.today.waiting;
+      document.getElementById('stat-done').textContent = data.today.completed;
+      document.getElementById('stat-emergency').textContent = data.today.emergencies;
+
+      document.getElementById('t1').textContent = data.triage_breakdown.critical;
+      document.getElementById('t2').textContent = data.triage_breakdown.emergency;
+      document.getElementById('t3').textContent = data.triage_breakdown.urgent;
+      document.getElementById('t4').textContent = data.triage_breakdown.semi_urgent;
+      document.getElementById('t5').textContent = data.triage_breakdown.minor;
+
+      const avail = data.doctors.available;
+      const total = data.doctors.total;
+      const pct = total > 0 ? Math.round((avail / total) * 100) : 0;
+      document.getElementById('doc-available').textContent = avail;
+      document.getElementById('doc-total').textContent = total;
+      document.getElementById('doc-pct').textContent = pct + '%';
+      document.getElementById('doc-bar').style.width = pct + '%';
+
+      const deptEl = document.getElementById('dept-queue');
+      if (data.queue_by_department.length === 0) {
+        deptEl.innerHTML = '<p class="text-sm text-slate-400 text-center py-4">No patients waiting</p>';
+      } else {
+        deptEl.innerHTML = data.queue_by_department.map(d => `
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-slate-600">${d.department__name || 'Unknown'}</span>
+            <span class="text-sm font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-full">${d.count}</span>
+          </div>
+        `).join('');
+      }
+    } catch(e) { console.log('Stats load failed', e); }
+  }
+
+  loadStats();
+  setInterval(loadStats, 15000); // refresh every 15s
+</script>
+{% endblock %}

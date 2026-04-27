@@ -1,0 +1,461 @@
+{% extends "base.html" %}
+{% block title %}AI Triage — MediFlow{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold text-slate-800">AI Triage Assessment</h1>
+  <p class="text-slate-500 text-sm mt-1">Enter patient vitals — AI will score urgency instantly</p>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+  <!-- Triage Form -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+    <h2 class="font-semibold text-slate-800 mb-5 flex items-center gap-2">
+      <i class="fas fa-stethoscope text-blue-500"></i> Vitals Input
+    </h2>
+    <form id="triage-form" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Patient *</label>
+        <div class="relative">
+          <input type="text" id="patient-search" autocomplete="off"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Search by name or phone..." />
+          <input type="hidden" name="patient_id" id="patient-id-input" required />
+          <div id="patient-dropdown"
+            class="absolute z-50 w-full bg-white border border-slate-200 rounded-xl shadow-lg mt-1 hidden max-h-48 overflow-y-auto"></div>
+        </div>
+        <p class="text-xs mt-1" id="patient-selected-label"></p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Symptoms *</label>
+        <textarea name="symptoms" rows="3" required
+          class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Describe patient symptoms in detail..."></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">BP Systolic (mmHg) *</label>
+          <input name="bp_systolic" type="number" required min="40" max="300"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 120" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">BP Diastolic (mmHg) *</label>
+          <input name="bp_diastolic" type="number" required min="20" max="200"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 80" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Pulse (bpm) *</label>
+          <input name="pulse" type="number" required min="20" max="300"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 80" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Temperature (°C) *</label>
+          <input name="temperature" type="number" step="0.1" required min="30" max="45"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 37.0" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">SpO2 (%) *</label>
+          <input name="oxygen_level" type="number" step="0.1" required min="50" max="100"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 98" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Pain Scale (0–10) *</label>
+          <input name="pain_scale" type="number" required min="0" max="10"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 5" />
+        </div>
+      </div>
+
+      <button type="submit" id="submit-btn"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2">
+        <i class="fas fa-brain"></i> Run AI Triage Assessment
+      </button>
+    </form>
+  </div>
+
+  <!-- Result Panel -->
+  <div>
+    <!-- Placeholder -->
+    <div id="result-placeholder" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col items-center justify-center min-h-64 text-center">
+      <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+        <i class="fas fa-brain text-blue-400 text-2xl"></i>
+      </div>
+      <p class="font-medium text-slate-600">AI Result will appear here</p>
+      <p class="text-sm text-slate-400 mt-1">Fill in vitals and submit to get triage score</p>
+    </div>
+
+    <!-- Result Card (hidden until scored) -->
+    <div id="result-card" class="hidden">
+      <div id="score-banner" class="rounded-2xl p-6 mb-4 text-center">
+        <p class="text-sm font-semibold uppercase tracking-wider mb-2 opacity-80">Triage Score</p>
+        <p id="score-number" class="text-7xl font-extrabold mb-2"></p>
+        <p id="score-label" class="text-xl font-bold"></p>
+      </div>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-4">
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Clinical Reasoning</p>
+          <p id="score-reason" class="text-sm text-slate-700"></p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Recommended Action</p>
+          <p id="score-action" class="text-sm text-slate-700 font-medium"></p>
+        </div>
+        <div id="score-source"></div>
+        <div class="pt-2 flex gap-3">
+          <button onclick="openIssueModal()" id="issue-token-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-sm font-medium transition-colors">
+            <i class="fas fa-ticket-alt mr-2"></i>Issue Token
+          </button>
+          <button onclick="resetForm()" class="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50 transition-colors">
+            New Assessment
+          </button>
+        </div>
+        <div id="auto-token-notice" class="hidden mt-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+          <i class="fas fa-ambulance mr-2"></i>
+          <strong>Emergency token auto-created</strong> in the Emergency department queue.
+          Patient has been escalated automatically.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Assessments -->
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 mt-6 overflow-hidden">
+  <div class="p-5 border-b border-slate-100">
+    <h2 class="font-semibold text-slate-800">Recent Assessments</h2>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead>
+        <tr class="bg-slate-50 border-b border-slate-100">
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Patient</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Score</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Vitals</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Source</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Time</th>
+        </tr>
+      </thead>
+      <tbody id="triage-history">
+        <tr><td colspan="5" class="text-center py-8 text-slate-400">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let lastAssessment = null;
+
+  const scoreConfig = {
+    1: { cls: 'triage-1', label: 'IMMEDIATE',   bg: 'bg-red-500 text-white' },
+    2: { cls: 'triage-2', label: 'EMERGENCY',   bg: 'bg-orange-500 text-white' },
+    3: { cls: 'triage-3', label: 'URGENT',      bg: 'bg-yellow-400 text-slate-800' },
+    4: { cls: 'triage-4', label: 'SEMI-URGENT', bg: 'bg-green-500 text-white' },
+    5: { cls: 'triage-5', label: 'NON-URGENT',  bg: 'bg-blue-500 text-white' },
+  };
+
+  // ── Patient search ─────────────────────────────────────────────────────────
+  let searchTimer = null;
+
+  document.getElementById('patient-search').addEventListener('input', function () {
+    clearTimeout(searchTimer);
+    document.getElementById('patient-id-input').value = '';
+    document.getElementById('patient-selected-label').textContent = '';
+    const q = this.value.trim();
+    if (q.length < 2) { document.getElementById('patient-dropdown').classList.add('hidden'); return; }
+    searchTimer = setTimeout(() => searchPatients(q), 300);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#patient-search') && !e.target.closest('#patient-dropdown'))
+      document.getElementById('patient-dropdown').classList.add('hidden');
+  });
+
+  async function searchPatients(q) {
+    const res = await apiFetch(`/api/patients/?name=${encodeURIComponent(q)}`);
+    if (!res) return;
+    const data = await res.json();
+    const patients = data.results || data;
+    const dropdown = document.getElementById('patient-dropdown');
+    if (!patients.length) {
+      dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-slate-400">No patients found</div>';
+      dropdown.classList.remove('hidden');
+      return;
+    }
+    dropdown.innerHTML = patients.map(p => `
+      <div onclick="selectPatient(${p.id}, '${p.name.replace(/'/g,"\\'")}', '${p.phone}')"
+        class="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors">
+        <p class="text-sm font-medium text-slate-800">${p.name}</p>
+        <p class="text-xs text-slate-400">${p.phone} &nbsp;·&nbsp; Age ${p.age} &nbsp;·&nbsp; ${p.blood_group || '—'}</p>
+      </div>
+    `).join('');
+    dropdown.classList.remove('hidden');
+  }
+
+  function selectPatient(id, name, phone) {
+    document.getElementById('patient-id-input').value = id;
+    document.getElementById('patient-search').value = name;
+    document.getElementById('patient-selected-label').innerHTML =
+      `<i class="fas fa-check-circle text-green-500 mr-1"></i><span class="text-green-600">${name} &nbsp;·&nbsp; ${phone}</span>`;
+    document.getElementById('patient-dropdown').classList.add('hidden');
+  }
+
+  // ── Triage form submit ─────────────────────────────────────────────────────
+  document.getElementById('triage-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!document.getElementById('patient-id-input').value) {
+      alert('Please select a patient from the search results.');
+      return;
+    }
+    const btn = document.getElementById('submit-btn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Analyzing...';
+    btn.disabled = true;
+
+    const fd = new FormData(e.target);
+    const body = {};
+    fd.forEach((v, k) => body[k] = isNaN(v) || v === '' ? v : Number(v));
+
+    const res = await apiFetch('/api/triage/assess/', { method: 'POST', body: JSON.stringify(body) });
+    btn.innerHTML = '<i class="fas fa-brain mr-2"></i>Run AI Triage Assessment';
+    btn.disabled = false;
+
+    if (!res) return;
+    const data = await res.json();
+    if (res.ok) {
+      lastAssessment = data;
+      showResult(data);
+      loadHistory();
+    } else {
+      alert('Error: ' + JSON.stringify(data));
+    }
+  });
+
+  function showResult(data) {
+    const cfg = scoreConfig[data.ai_score] || scoreConfig[5];
+    document.getElementById('result-placeholder').classList.add('hidden');
+    document.getElementById('result-card').classList.remove('hidden');
+    const banner = document.getElementById('score-banner');
+    banner.className = `rounded-2xl p-6 mb-4 text-center ${cfg.bg}`;
+    document.getElementById('score-number').textContent = data.ai_score;
+    document.getElementById('score-label').textContent = cfg.label;
+    document.getElementById('score-reason').textContent = data.ai_reasoning;
+    document.getElementById('score-action').textContent = data.ai_action;
+
+    // Source badge
+    const isGemini = data.ai_source === 'gemini';
+    document.getElementById('score-source').innerHTML = isGemini
+      ? `<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full">
+           <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+           Scored by Google Gemini AI
+         </span>`
+      : `<span class="inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
+           <i class="fas fa-calculator"></i>
+           Scored by Rule-Based Engine
+         </span>`;
+
+    // Score 1 or 2 — token already auto-created, hide Issue Token button
+    const isEmergency = data.ai_score <= 2;
+    document.getElementById('issue-token-btn').classList.toggle('hidden', isEmergency);
+    document.getElementById('auto-token-notice').classList.toggle('hidden', !isEmergency);
+  }
+
+  function resetForm() {
+    document.getElementById('triage-form').reset();
+    document.getElementById('patient-search').value = '';
+    document.getElementById('patient-id-input').value = '';
+    document.getElementById('patient-selected-label').textContent = '';
+    document.getElementById('result-card').classList.add('hidden');
+    document.getElementById('result-placeholder').classList.remove('hidden');
+    document.getElementById('issue-token-btn').classList.remove('hidden');
+    document.getElementById('auto-token-notice').classList.add('hidden');
+    lastAssessment = null;
+  }
+
+  // ── Issue Token modal ──────────────────────────────────────────────────────
+  async function openIssueModal() {
+    if (!lastAssessment) return;
+
+    // Reset modal state
+    document.getElementById('token-success-card').classList.add('hidden');
+    document.getElementById('issue-token-actions').classList.remove('hidden');
+    document.getElementById('issue-token-error').classList.add('hidden');
+
+    // Fill patient info
+    const patientName = document.getElementById('patient-search').value;
+    const patientPhone = document.getElementById('patient-selected-label').textContent.replace('✓ Selected: ', '').split('·')[1]?.trim() || '';
+    document.getElementById('modal-patient-avatar').textContent = patientName.charAt(0).toUpperCase();
+    document.getElementById('modal-patient-name').textContent = patientName;
+    document.getElementById('modal-patient-phone').textContent = patientPhone;
+
+    // Triage badge
+    const cfg = scoreConfig[lastAssessment.ai_score];
+    const badge = document.getElementById('modal-triage-badge');
+    badge.textContent = cfg?.label || lastAssessment.ai_score;
+    badge.className = `text-xs font-bold px-2 py-1 rounded-full ${cfg?.cls || ''}`;
+
+    // Load departments
+    const res = await apiFetch('/api/departments/');
+    if (res) {
+      const data = await res.json();
+      const depts = data.results || data;
+      document.getElementById('issue-dept').innerHTML =
+        depts.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+    }
+
+    document.getElementById('issue-token-modal').classList.remove('hidden');
+  }
+
+  function closeIssueModal() {
+    document.getElementById('issue-token-modal').classList.add('hidden');
+  }
+
+  async function submitIssueToken() {
+    const deptId = document.getElementById('issue-dept').value;
+    const errEl  = document.getElementById('issue-token-error');
+    const btn    = document.getElementById('issue-submit-btn');
+
+    if (!deptId) {
+      errEl.textContent = 'Please select a department.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    errEl.classList.add('hidden');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Issuing...';
+    btn.disabled = true;
+
+    const res = await apiFetch('/api/queue/', {
+      method: 'POST',
+      body: JSON.stringify({
+        patient: lastAssessment.patient,
+        department: Number(deptId),
+        triage_score: lastAssessment.ai_score,
+      })
+    });
+
+    btn.innerHTML = '<i class="fas fa-ticket-alt mr-2"></i>Issue Token';
+    btn.disabled = false;
+
+    if (!res) return;
+    const t = await res.json();
+
+    if (res.ok) {
+      // Show success card
+      document.getElementById('success-token-number').textContent = '#' + t.token_number;
+      document.getElementById('success-dept-name').textContent = t.department_name || '';
+      document.getElementById('token-success-card').classList.remove('hidden');
+      document.getElementById('issue-token-actions').classList.add('hidden');
+    } else {
+      errEl.textContent = JSON.stringify(t);
+      errEl.classList.remove('hidden');
+    }
+  }
+
+  // ── History table ──────────────────────────────────────────────────────────
+  async function loadHistory() {
+    const res = await apiFetch('/api/triage/');
+    if (!res) return;
+    const data = await res.json();
+    const items = data.results || data;
+    const tbody = document.getElementById('triage-history');
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-400">No assessments yet</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.slice(0, 10).map(a => `
+      <tr class="border-b border-slate-50 hover:bg-slate-50">
+        <td class="px-5 py-3 text-sm text-slate-700">
+          <p class="font-medium">${a.patient_name || 'Patient #' + a.patient}</p>
+          <p class="text-xs text-slate-400">#${a.patient}</p>
+        </td>
+        <td class="px-5 py-3">
+          <span class="text-xs font-bold px-2 py-1 rounded-full ${scoreConfig[a.ai_score]?.cls || ''}">${scoreConfig[a.ai_score]?.label || a.ai_score}</span>
+        </td>
+        <td class="px-5 py-3 text-xs text-slate-500">${a.bp_systolic}/${a.bp_diastolic} mmHg · ${a.pulse} bpm · ${a.oxygen_level}% SpO2</td>
+        <td class="px-5 py-3">
+          ${a.ai_source === 'gemini'
+            ? '<span class="text-xs font-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Gemini AI</span>'
+            : '<span class="text-xs font-medium bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">Rule-Based</span>'
+          }
+        </td>
+        <td class="px-5 py-3 text-xs text-slate-400">${new Date(a.assessed_at).toLocaleString()}</td>
+      </tr>
+    `).join('');
+  }
+
+  function showToast(msg) {
+    const t = document.createElement('div');
+    t.className = 'fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium bg-green-600';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+
+  // Pre-fill from URL param ?patient=ID
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('patient')) {
+    const pid = params.get('patient');
+    document.getElementById('patient-id-input').value = pid;
+    apiFetch(`/api/patients/${pid}/`).then(r => r && r.json()).then(p => {
+      if (p) selectPatient(p.id, p.name, p.phone);
+    });
+  }
+
+  loadHistory();
+</script>
+
+<!-- Issue Token Modal -->
+<div id="issue-token-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+    <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+      <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+        <i class="fas fa-ticket-alt text-green-600"></i> Issue Queue Token
+      </h3>
+      <button onclick="closeIssueModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <div class="p-6 space-y-4">
+      <!-- Patient info -->
+      <div class="bg-slate-50 rounded-xl px-4 py-3 flex items-center gap-3">
+        <div class="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm" id="modal-patient-avatar">—</div>
+        <div>
+          <p class="text-sm font-semibold text-slate-800" id="modal-patient-name">—</p>
+          <p class="text-xs text-slate-400" id="modal-patient-phone">—</p>
+        </div>
+        <div class="ml-auto">
+          <span id="modal-triage-badge" class="text-xs font-bold px-2 py-1 rounded-full"></span>
+        </div>
+      </div>
+      <!-- Department -->
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Department *</label>
+        <select id="issue-dept" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+          <option value="">Loading...</option>
+        </select>
+      </div>
+      <div id="issue-token-error" class="hidden text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg"></div>
+      <!-- Success card -->
+      <div id="token-success-card" class="hidden bg-green-50 border border-green-200 rounded-xl p-5 text-center">
+        <i class="fas fa-check-circle text-green-500 text-4xl mb-3 block"></i>
+        <p class="font-bold text-green-700 text-lg">Token Issued!</p>
+        <p class="text-green-600 mt-1">Token <span id="success-token-number" class="font-extrabold text-3xl"></span></p>
+        <p class="text-green-600 text-sm mt-1" id="success-dept-name"></p>
+        <a href="/queue/" class="inline-block mt-3 text-xs bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+          View in Queue Management →
+        </a>
+      </div>
+      <!-- Actions -->
+      <div id="issue-token-actions" class="flex gap-3 pt-2">
+        <button onclick="closeIssueModal()" class="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50">Cancel</button>
+        <button onclick="submitIssueToken()" id="issue-submit-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-sm font-medium transition-colors">
+          <i class="fas fa-ticket-alt mr-2"></i>Issue Token
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

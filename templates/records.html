@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+{% block title %}Medical Records — MediFlow{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-800">Medical Records</h1>
+    <p class="text-slate-500 text-sm mt-1">Patient visit history, diagnoses and prescriptions</p>
+  </div>
+  <button onclick="openModal('record-modal')" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
+    <i class="fas fa-plus"></i> Add Record
+  </button>
+</div>
+
+<!-- Search -->
+<div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 mb-6 flex gap-3">
+  <div class="flex-1 relative">
+    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+    <input id="search-input" type="text" placeholder="Search by patient name or diagnosis..."
+      class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+  </div>
+  <button onclick="loadRecords()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-colors">Search</button>
+</div>
+
+<!-- Records Grid -->
+<div id="records-grid" class="space-y-4">
+  <div class="text-center py-16 text-slate-400">
+    <i class="fas fa-spinner fa-spin text-3xl mb-3 block"></i>Loading records...
+  </div>
+</div>
+
+<!-- Add Record Modal -->
+<div id="record-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+      <h3 class="font-bold text-lg text-slate-800">Add Medical Record</h3>
+      <button onclick="closeModal('record-modal')" class="text-slate-400 hover:text-slate-600">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <form id="record-form" class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Patient *</label>
+        <div class="relative">
+          <input type="text" id="rec-patient-search" autocomplete="off"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Search patient..." />
+          <input type="hidden" name="patient" id="rec-patient-id" required />
+          <div id="rec-patient-dropdown" class="absolute z-50 w-full bg-white border border-slate-200 rounded-xl shadow-lg mt-1 hidden max-h-40 overflow-y-auto"></div>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Doctor</label>
+        <select name="doctor" id="rec-doctor" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Select doctor (optional)</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Diagnosis *</label>
+        <textarea name="diagnosis" rows="2" required class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Primary diagnosis..."></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Prescription *</label>
+        <textarea name="prescription" rows="3" required class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Medications and dosage..."></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Notes</label>
+        <textarea name="notes" rows="2" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Additional notes..."></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Hospital</label>
+          <input name="hospital" type="text" value="General Hospital" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Follow-up Date</label>
+          <input name="follow_up_date" type="date" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+      </div>
+      <div id="record-error" class="hidden text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg"></div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="closeModal('record-modal')" class="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50">Cancel</button>
+        <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-medium transition-colors">Save Record</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div id="detail-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+    <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+      <h3 class="font-bold text-lg text-slate-800">Medical Record</h3>
+      <button onclick="closeModal('detail-modal')" class="text-slate-400 hover:text-slate-600">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <div id="detail-content" class="p-6 space-y-4"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let allRecords = [];
+
+  async function loadRecords() {
+    const q = document.getElementById('search-input').value.trim();
+    const url = '/api/records/' + (q ? `?patient__name=${encodeURIComponent(q)}` : '');
+    const res = await apiFetch('/api/records/');
+    if (!res) return;
+    const data = await res.json();
+    allRecords = data.results || data;
+    renderRecords(allRecords);
+  }
+
+  function renderRecords(items) {
+    const grid = document.getElementById('records-grid');
+    if (!items.length) {
+      grid.innerHTML = '<div class="text-center py-16 text-slate-400"><i class="fas fa-file-medical text-4xl mb-3 block opacity-30"></i>No medical records found</div>';
+      return;
+    }
+    grid.innerHTML = items.map(r => `
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 hover:shadow-md transition-shadow">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 bg-blue-100 rounded-xl flex items-center justify-center">
+              <i class="fas fa-file-medical text-blue-600"></i>
+            </div>
+            <div>
+              <p class="font-semibold text-slate-800">${r.patient_name || 'Patient #' + r.patient}</p>
+              <p class="text-xs text-slate-400">#${r.patient} · ${r.hospital} · ${new Date(r.visit_date).toLocaleDateString()}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            ${r.follow_up_date ? `<span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full"><i class="fas fa-calendar-check mr-1"></i>Follow-up: ${r.follow_up_date}</span>` : ''}
+            <button onclick="showDetail(${r.id})" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors">View</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Diagnosis</p>
+            <p class="text-sm text-slate-700 line-clamp-2">${r.diagnosis}</p>
+          </div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Prescription</p>
+            <p class="text-sm text-slate-600 line-clamp-2">${r.prescription}</p>
+          </div>
+        </div>
+        ${r.doctor_name ? `<p class="text-base mt-3"><i class="fas fa-user-md mr-1"></i>Dr. ${r.doctor_name}</p>` : ''}
+      </div>
+    `).join('');
+  }
+
+  async function showDetail(id) {
+    const res = await apiFetch(`/api/records/${id}/`);
+    if (!res) return;
+    const r = await res.json();
+    document.getElementById('detail-content').innerHTML = `
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs text-slate-500 uppercase tracking-wider">Patient</p>
+          <p class="font-semibold text-slate-800">${r.patient_name || 'Patient #' + r.patient}</p>
+          <p class="text-xs text-slate-400">ID: ${r.patient}</p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-slate-500">Visit Date</p>
+          <p class="text-sm font-medium text-slate-700">${new Date(r.visit_date).toLocaleString()}</p>
+        </div>
+      </div>
+      <hr class="border-slate-100">
+      <div>
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Diagnosis</p>
+        <p class="text-sm text-slate-700 bg-slate-50 rounded-xl p-3">${r.diagnosis}</p>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Prescription</p>
+        <p class="text-sm text-slate-700 bg-slate-50 rounded-xl p-3 whitespace-pre-line">${r.prescription}</p>
+      </div>
+      ${r.notes ? `<div><p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Notes</p><p class="text-sm text-slate-600">${r.notes}</p></div>` : ''}
+      <div class="flex items-center justify-between text-sm pt-2 border-t border-slate-100">
+        <span><i class="fas fa-hospital mr-1"></i>${r.hospital}</span>
+        ${r.doctor_name ? `<span><i class="fas fa-user-md mr-1"></i>Dr. ${r.doctor_name}</span>` : ''}
+        ${r.follow_up_date ? `<span class="text-yellow-600"><i class="fas fa-calendar-check mr-1"></i>Follow-up: ${r.follow_up_date}</span>` : ''}
+      </div>
+    `;
+    openModal('detail-modal');
+  }
+
+  // Patient search for form
+  let recSearchTimer = null;
+  document.getElementById('rec-patient-search').addEventListener('input', function() {
+    clearTimeout(recSearchTimer);
+    const q = this.value.trim();
+    if (q.length < 2) { document.getElementById('rec-patient-dropdown').classList.add('hidden'); return; }
+    recSearchTimer = setTimeout(async () => {
+      const res = await apiFetch(`/api/patients/?name=${encodeURIComponent(q)}`);
+      if (!res) return;
+      const data = await res.json();
+      const patients = data.results || data;
+      const dd = document.getElementById('rec-patient-dropdown');
+      dd.innerHTML = patients.map(p => `
+        <div onclick="selectRecPatient(${p.id},'${p.name.replace(/'/g,"\\'")}','${p.phone}')"
+          class="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-slate-50 last:border-0 text-sm">
+          <p class="font-medium text-slate-800">${p.name}</p>
+          <p class="text-xs text-slate-400">${p.phone}</p>
+        </div>
+      `).join('') || '<div class="px-4 py-3 text-sm text-slate-400">No patients found</div>';
+      dd.classList.remove('hidden');
+    }, 300);
+  });
+
+  function selectRecPatient(id, name, phone) {
+    document.getElementById('rec-patient-id').value = id;
+    document.getElementById('rec-patient-search').value = name;
+    document.getElementById('rec-patient-dropdown').classList.add('hidden');
+  }
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#rec-patient-search') && !e.target.closest('#rec-patient-dropdown'))
+      document.getElementById('rec-patient-dropdown').classList.add('hidden');
+  });
+
+  // Load doctors for dropdown
+  apiFetch('/api/doctors/').then(r => r && r.json()).then(data => {
+    if (!data) return;
+    const doctors = data.results || data;
+    const sel = document.getElementById('rec-doctor');
+    doctors.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.id;
+      opt.textContent = `Dr. ${d.name} (${d.specialization})`;
+      sel.appendChild(opt);
+    });
+  });
+
+  // Submit form
+  document.getElementById('record-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const body = {};
+    fd.forEach((v, k) => { if (v) body[k] = v; });
+    if (!body.patient) {
+      document.getElementById('record-error').textContent = 'Please select a patient.';
+      document.getElementById('record-error').classList.remove('hidden');
+      return;
+    }
+    const res = await apiFetch('/api/records/', { method: 'POST', body: JSON.stringify(body) });
+    if (!res) return;
+    if (res.ok) {
+      closeModal('record-modal');
+      e.target.reset();
+      loadRecords();
+    } else {
+      const err = await res.json();
+      document.getElementById('record-error').textContent = JSON.stringify(err);
+      document.getElementById('record-error').classList.remove('hidden');
+    }
+  });
+
+  function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+  function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+  document.getElementById('search-input').addEventListener('keyup', e => { if (e.key === 'Enter') loadRecords(); });
+
+  loadRecords();
+</script>
+{% endblock %}

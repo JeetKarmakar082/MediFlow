@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — MediFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>* { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="min-h-screen flex" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);">
+
+  <!-- Left Panel -->
+  <div class="hidden lg:flex flex-1 flex-col items-center justify-center p-16 text-white">
+    <div class="max-w-md">
+      <div class="flex items-center gap-3 mb-10">
+        <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center">
+          <i class="fas fa-heartbeat text-white text-2xl"></i>
+        </div>
+        <span class="text-3xl font-bold">Medi<span class="text-blue-400">Flow</span></span>
+      </div>
+      <h1 class="text-4xl font-bold leading-tight mb-4">Smart Patient Flow<br/>Management System</h1>
+      <p class="text-slate-400 text-lg mb-10">AI-powered triage, real-time queue management, and emergency escalation for modern hospitals.</p>
+      <div class="space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-blue-600/30 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-brain text-blue-400 text-sm"></i>
+          </div>
+          <p class="text-slate-300 text-sm">AI Triage Engine with Google Gemini scoring</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-blue-600/30 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-bolt text-blue-400 text-sm"></i>
+          </div>
+          <p class="text-slate-300 text-sm">Real-time queue updates</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-blue-600/30 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-stethoscope text-blue-400 text-sm"></i>
+          </div>
+          <p class="text-slate-300 text-sm">Expert doctor support</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel — Login Form -->
+  <div class="flex-1 lg:max-w-md flex items-center justify-center p-8">
+    <div class="w-full max-w-sm">
+      <div class="bg-white rounded-3xl shadow-2xl p-8">
+
+        <div class="flex items-center gap-2 mb-8">
+          <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
+            <i class="fas fa-heartbeat text-white text-sm"></i>
+          </div>
+          <span class="font-bold text-xl text-slate-800">Medi<span class="text-blue-600">Flow</span></span>
+        </div>
+
+        <h2 class="text-2xl font-bold text-slate-800 mb-1">Welcome back</h2>
+        <p class="text-slate-500 text-sm mb-8">Sign in to your staff account</p>
+
+        <!-- Django form POST with CSRF -->
+        <form method="POST" action="/login/" id="login-form" class="space-y-5">
+          {% csrf_token %}
+
+          {% if error %}
+          <div class="text-sm text-red-600 bg-red-50 px-4 py-3 rounded-xl border border-red-200">
+            {{ error }}
+          </div>
+          {% endif %}
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
+            <input name="username" type="text" required autocomplete="username"
+              class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              placeholder="Enter your username" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+            <div class="relative">
+              <input name="password" id="password" type="password" required autocomplete="current-password"
+                class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Enter your password" />
+              <button type="button" onclick="togglePwd()"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <i id="eye-icon" class="fas fa-eye text-sm"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-colors">
+            Sign In
+          </button>
+        </form>
+
+        <p class="text-center text-xs text-slate-400 mt-6">
+          Government District Hospital · MediFlow v1.0
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script>
+    function togglePwd() {
+      const input = document.getElementById('password');
+      const icon  = document.getElementById('eye-icon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash text-sm';
+      } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye text-sm';
+      }
+    }
+  </script>
+</body>
+</html>
