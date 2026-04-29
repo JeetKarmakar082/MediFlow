@@ -234,3 +234,16 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.notification_type} → {self.phone} [{self.status}]"
+
+
+
+from django.db.models.signals import post_migrate
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+from django.conf import settings
+
+@receiver(post_migrate)
+def create_admin_user(sender, **kwargs):
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin123@gmail.com', 'admin123')
+        print("Superuser created successfully!")
