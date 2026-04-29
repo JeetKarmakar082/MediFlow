@@ -5,12 +5,12 @@ channels==4.0.0
 channels-redis==4.1.0
 celery==5.3.4
 redis==5.0.1
-psycopg2-binary==2.9.9
 twilio==8.10.0
 weasyprint==60.2
 django-cors-headers==4.3.1
 python-decouple==3.8
 daphne==4.0.0
+google-generativeai==0.8.6
 google-genai
 dj-database-url==3.1.2
-google-generativeai==0.8.6
+psycopg2-binary==2.9.9
