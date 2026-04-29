@@ -1,5 +1,7 @@
 from pathlib import Path
 from decouple import config
+import dj_database_url
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -67,17 +69,24 @@ CHANNEL_LAYERS = {
 
 # Database
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        # Switch to PostgreSQL in production:
-        # 'ENGINE': 'django.db.backends.postgresql',
-        # 'NAME': config('DB_NAME'),
-        # 'USER': config('DB_USER'),
-        # 'PASSWORD': config('DB_PASSWORD'),
-        # 'HOST': config('DB_HOST', default='localhost'),
-        # 'PORT': config('DB_PORT', default='5432'),
-    }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3',
+    #     # Switch to PostgreSQL in production:
+    #     # 'ENGINE': 'django.db.backends.postgresql',
+    #     # 'NAME': config('DB_NAME'),
+    #     # 'USER': config('DB_USER'),
+    #     # 'PASSWORD': config('DB_PASSWORD'),
+    #     # 'HOST': config('DB_HOST', default='localhost'),
+    #     # 'PORT': config('DB_PORT', default='5432'),
+    # }
+    'default': dj_database_url.config(
+        # If DATABASE_URL exists (on Render), use it. 
+        # Otherwise, use local SQLite.
+        default=f'sqlite:///{os.path.join(BASE_DIR, "db.sqlite3")}',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = [
