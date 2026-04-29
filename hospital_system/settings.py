@@ -68,7 +68,7 @@ CHANNEL_LAYERS = {
 }
 
 # Database
-DATABASES = {
+# DATABASES = {
     # 'default': {
     #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': BASE_DIR / 'db.sqlite3',
@@ -80,14 +80,35 @@ DATABASES = {
     #     # 'HOST': config('DB_HOST', default='localhost'),
     #     # 'PORT': config('DB_PORT', default='5432'),
     # }
-    'default': dj_database_url.config(
-        # If DATABASE_URL exists (on Render), use it. 
-        # Otherwise, use local SQLite.
-        default=f'sqlite:///{os.path.join(BASE_DIR, "db.sqlite3")}',
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+    # 'default': dj_database_url.config(
+    #     # If DATABASE_URL exists (on Render), use it. 
+    #     # Otherwise, use local SQLite.
+    #     default=f'sqlite:///{os.path.join(BASE_DIR, "db.sqlite3")}',
+    #     conn_max_age=600,
+    #     conn_health_checks=True,
+    # )
+# }
+
+# Database
+# Check if we are running on Render (Render sets the RENDER environment variable to 'true')
+IS_PRODUCTION = os.environ.get('RENDER', False)
+
+if IS_PRODUCTION:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    # Use SQLite locally on your F: drive
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
