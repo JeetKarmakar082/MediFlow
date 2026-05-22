@@ -174,10 +174,14 @@
   }
 
   function applyFilters() {
-    const search = document.getElementById('search-input').value.toLowerCase();
+    const search = document.getElementById('search-input').value.toLowerCase().trim();
     const score  = document.getElementById('score-filter').value;
     const source = document.getElementById('source-filter').value;
     let filtered = allData;
+    if (search) filtered = filtered.filter(a =>
+      (a.patient_name || '').toLowerCase().includes(search) ||
+      String(a.patient).includes(search)
+    );
     if (score)  filtered = filtered.filter(a => String(a.ai_score) === score);
     if (source) filtered = filtered.filter(a => a.ai_source === source);
     renderTable(filtered);
