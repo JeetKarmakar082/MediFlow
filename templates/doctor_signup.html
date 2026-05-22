@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doctor Registration — MediFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+    if (localStorage.getItem('theme') === 'dark' ||
+        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>* { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="min-h-screen" style="background: linear-gradient(135deg, #0c1a2e 0%, #0f3460 50%, #0c1a2e 100%);">
+
+  <div class="min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-2xl">
+
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 bg-teal-500 rounded-2xl flex items-center justify-center">
+            <i class="fas fa-user-md text-white text-xl"></i>
+          </div>
+          <span class="text-3xl font-bold text-white">Medi<span class="text-teal-400">Flow</span></span>
+        </div>
+        <h1 class="text-2xl font-bold text-white mb-1">Doctor Registration</h1>
+        <p class="text-slate-400 text-sm">Create your doctor account to access the portal</p>
+      </div>
+
+      <!-- Form Card -->
+      <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-8">
+
+        {% if errors.general %}
+        <div class="mb-5 flex items-start gap-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm">
+          <i class="fas fa-exclamation-circle mt-0.5 flex-shrink-0"></i>
+          <span>{{ errors.general }}</span>
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/doctor/signup/" class="space-y-6">
+          {% csrf_token %}
+
+          <!-- Section: Login Credentials -->
+          <div>
+            <h2 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <i class="fas fa-lock text-teal-500"></i> Login Credentials
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Username *</label>
+                <input name="username" type="text" required autocomplete="username"
+                  value="{{ form_data.username|default:'' }}"
+                  class="w-full border {% if errors.username %}border-red-400 bg-red-50{% else %}border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400{% endif %} rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="e.g. dr.sharma" />
+                {% if errors.username %}<p class="text-xs text-red-600 mt-1">{{ errors.username }}</p>{% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
+                <input name="email" type="email" autocomplete="email"
+                  value="{{ form_data.email|default:'' }}"
+                  class="w-full border {% if errors.email %}border-red-400 bg-red-50{% else %}border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400{% endif %} rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="doctor@hospital.com" />
+                {% if errors.email %}<p class="text-xs text-red-600 mt-1">{{ errors.email }}</p>{% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Password *</label>
+                <div class="relative">
+                  <input name="password" id="password" type="password" required autocomplete="new-password"
+                    class="w-full border {% if errors.password %}border-red-400 bg-red-50{% else %}border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400{% endif %} rounded-xl px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    placeholder="Min. 8 characters" />
+                  <button type="button" onclick="togglePwd('password','eye1')"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    <i id="eye1" class="fas fa-eye text-sm"></i>
+                  </button>
+                </div>
+                {% if errors.password %}<p class="text-xs text-red-600 mt-1">{{ errors.password }}</p>{% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Confirm Password *</label>
+                <div class="relative">
+                  <input name="password2" id="password2" type="password" required autocomplete="new-password"
+                    class="w-full border {% if errors.password2 %}border-red-400 bg-red-50{% else %}border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400{% endif %} rounded-xl px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    placeholder="Repeat password" />
+                  <button type="button" onclick="togglePwd('password2','eye2')"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    <i id="eye2" class="fas fa-eye text-sm"></i>
+                  </button>
+                </div>
+                {% if errors.password2 %}<p class="text-xs text-red-600 mt-1">{{ errors.password2 }}</p>{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <hr class="border-slate-100 dark:border-slate-700" />
+
+          <!-- Section: Doctor Profile -->
+          <div>
+            <h2 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <i class="fas fa-stethoscope text-teal-500"></i> Doctor Profile
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Full Name *</label>
+                <input name="name" type="text" required
+                  value="{{ form_data.name|default:'' }}"
+                  class="w-full border {% if errors.name %}border-red-400 bg-red-50{% else %}border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400{% endif %} rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="e.g. Rajesh Sharma" />
+                {% if errors.name %}<p class="text-xs text-red-600 mt-1">{{ errors.name }}</p>{% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Specialization *</label>
+                <select name="specialization" required
+                  class="w-full border {% if errors.specialization %}border-red-400 bg-red-50{% else %}border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white{% endif %} rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                  <option value="">— Select specialization —</option>
+                  <option value="general"     {% if form_data.specialization == 'general'     %}selected{% endif %}>General Medicine</option>
+                  <option value="emergency"   {% if form_data.specialization == 'emergency'   %}selected{% endif %}>Emergency</option>
+                  <option value="cardiology"  {% if form_data.specialization == 'cardiology'  %}selected{% endif %}>Cardiology</option>
+                  <option value="orthopedics" {% if form_data.specialization == 'orthopedics' %}selected{% endif %}>Orthopedics</option>
+                  <option value="pediatrics"  {% if form_data.specialization == 'pediatrics'  %}selected{% endif %}>Pediatrics</option>
+                  <option value="neurology"   {% if form_data.specialization == 'neurology'   %}selected{% endif %}>Neurology</option>
+                  <option value="gynecology"  {% if form_data.specialization == 'gynecology'  %}selected{% endif %}>Gynecology</option>
+                  <option value="surgery"     {% if form_data.specialization == 'surgery'     %}selected{% endif %}>Surgery</option>
+                  <option value="other"       {% if form_data.specialization == 'other'       %}selected{% endif %}>Other</option>
+                </select>
+                {% if errors.specialization %}<p class="text-xs text-red-600 mt-1">{{ errors.specialization }}</p>{% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Department *</label>
+                <select name="department" required
+                  class="w-full border {% if errors.department %}border-red-400 bg-red-50{% else %}border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white{% endif %} rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                  <option value="">— Select department —</option>
+                  {% for dept in departments %}
+                  <option value="{{ dept.id }}" {% if form_data.department == dept.id|stringformat:"s" %}selected{% endif %}>
+                    {{ dept.name }}
+                  </option>
+                  {% endfor %}
+                </select>
+                {% if errors.department %}<p class="text-xs text-red-600 mt-1">{{ errors.department }}</p>{% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Phone *</label>
+                <input name="phone" type="tel" required
+                  value="{{ form_data.phone|default:'' }}"
+                  class="w-full border {% if errors.phone %}border-red-400 bg-red-50{% else %}border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400{% endif %} rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="e.g. 9876543210" />
+                {% if errors.phone %}<p class="text-xs text-red-600 mt-1">{{ errors.phone }}</p>{% endif %}
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Registration Number *</label>
+                <input name="registration_number" type="text" required
+                  value="{{ form_data.registration_number|default:'' }}"
+                  class="w-full border {% if errors.registration_number %}border-red-400 bg-red-50{% else %}border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400{% endif %} rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="e.g. MCI-12345" />
+                {% if errors.registration_number %}<p class="text-xs text-red-600 mt-1">{{ errors.registration_number }}</p>{% endif %}
+              </div>
+            </div>
+          </div>
+
+          <button type="submit"
+            class="w-full bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-sm">
+            <i class="fas fa-user-plus"></i> Create Doctor Account
+          </button>
+        </form>
+
+        <div class="mt-6 pt-5 border-t border-slate-100 dark:border-slate-700 text-center">
+          <p class="text-sm text-slate-500 dark:text-slate-400">
+            Already have an account?
+            <a href="/doctor/login/" class="text-teal-600 font-medium hover:underline">Sign in here</a>
+          </p>
+        </div>
+      </div>
+
+      <p class="text-center text-xs text-slate-500 dark:text-slate-400 mt-4">Government District Hospital · MediFlow v1.0</p>
+    </div>
+  </div>
+
+  <button id="theme-toggle" title="Toggle dark mode"
+    class="fixed top-4 right-4 z-50 w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm transition-colors">
+    <i id="theme-icon" class="fas fa-moon text-sm"></i>
+  </button>
+
+  <script>
+    function togglePwd(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon  = document.getElementById(iconId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash text-sm';
+      } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye text-sm';
+      }
+    }
+  </script>
+  <script>
+    (function() {
+      const btn = document.getElementById('theme-toggle');
+      const icon = document.getElementById('theme-icon');
+      function applyTheme(dark) {
+        if (dark) {
+          document.documentElement.classList.add('dark');
+          icon.className = 'fas fa-sun text-sm';
+          localStorage.setItem('theme', 'dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          icon.className = 'fas fa-moon text-sm';
+          localStorage.setItem('theme', 'light');
+        }
+      }
+      applyTheme(document.documentElement.classList.contains('dark'));
+      btn.addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
+    })();
+  </script>
+</body>
+</html>

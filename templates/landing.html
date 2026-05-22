@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediFlow — Smart Patient Flow Management System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    html { scroll-behavior: smooth; }
+
+    /* Gradient text */
+    .gradient-text {
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Animated gradient background */
+    .hero-bg {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #1e1b4b 70%, #0f172a 100%);
+    }
+
+    /* Glassmorphism card */
+    .glass {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    /* Triage badge colors */
+    .badge-1 { background:#fee2e2; color:#dc2626; }
+    .badge-2 { background:#ffedd5; color:#ea580c; }
+    .badge-3 { background:#fef9c3; color:#ca8a04; }
+    .badge-4 { background:#dbeafe; color:#2563eb; }
+    .badge-5 { background:#dcfce7; color:#16a34a; }
+
+    /* Floating animation */
+    @keyframes float {
+      0%,100% { transform: translateY(0px); }
+      50%      { transform: translateY(-10px); }
+    }
+    .float { animation: float 4s ease-in-out infinite; }
+
+    /* Pulse ring */
+    @keyframes pulse-ring {
+      0%   { transform: scale(0.8); opacity:1; }
+      100% { transform: scale(2);   opacity:0; }
+    }
+    .pulse-ring::before {
+      content:'';
+      position:absolute;
+      inset:0;
+      border-radius:50%;
+      background:rgba(96,165,250,0.4);
+      animation: pulse-ring 2s ease-out infinite;
+    }
+
+    /* Scroll fade-in */
+    .reveal { opacity:0; transform:translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+
+    /* Nav blur */
+    .nav-blur {
+      background: rgba(15,23,42,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* Stat counter */
+    .stat-card {
+      background: linear-gradient(135deg, rgba(37,99,235,0.15), rgba(124,58,237,0.15));
+      border: 1px solid rgba(96,165,250,0.2);
+    }
+
+    /* Feature card hover */
+    .feature-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .feature-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 60px rgba(96,165,250,0.15);
+    }
+
+    /* Timeline line */
+    .timeline-line {
+      background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-track { background:#0f172a; }
+    ::-webkit-scrollbar-thumb { background:#334155; border-radius:3px; }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-white overflow-x-hidden">
+
+<!-- ═══════════════════════════════════════════════════════════
+     NAVBAR
+═══════════════════════════════════════════════════════════ -->
+<nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <!-- Logo -->
+    <a href="#" class="flex items-center gap-3">
+      <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/30">
+        <i class="fas fa-heartbeat text-white text-sm"></i>
+      </div>
+      <span class="text-xl font-bold">Medi<span class="text-blue-400">Flow</span></span>
+    </a>
+
+    <!-- Desktop Nav Links -->
+    <div class="hidden md:flex items-center gap-8 text-sm text-slate-400">
+      <a href="#features"    class="hover:text-white transition-colors">Features</a>
+      <a href="#triage"      class="hover:text-white transition-colors">AI Triage</a>
+      <a href="#modules"     class="hover:text-white transition-colors">Modules</a>
+      <a href="#tech"        class="hover:text-white transition-colors">Tech Stack</a>
+      <a href="#workflow"    class="hover:text-white transition-colors">How It Works</a>
+    </div>
+
+    <!-- CTA -->
+    <div class="flex items-center gap-3">
+      <a href="/login/" class="hidden md:block text-sm text-slate-300 hover:text-white transition-colors px-4 py-2">Sign In</a>
+      <a href="/signup/" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-lg shadow-blue-600/25">
+        Get Started
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════════════════ -->
+<section class="hero-bg min-h-screen flex items-center relative overflow-hidden pt-20">
+
+  <!-- Background grid -->
+  <div class="absolute inset-0 opacity-10"
+    style="background-image: linear-gradient(rgba(96,165,250,0.3) 1px, transparent 1px),
+                             linear-gradient(90deg, rgba(96,165,250,0.3) 1px, transparent 1px);
+           background-size: 60px 60px;">
+  </div>
+
+  <!-- Glow blobs -->
+  <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-violet-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+  <div class="max-w-7xl mx-auto px-6 py-24 relative z-10">
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+
+      <!-- Left: Copy -->
+      <div>
+        <div class="inline-flex items-center gap-2 bg-blue-600/15 border border-blue-500/30 rounded-full px-4 py-2 text-sm text-blue-300 mb-8">
+          <span class="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+          AI-Powered Hospital Management
+        </div>
+
+        <h1 class="text-5xl lg:text-6xl font-black leading-tight mb-6">
+          Smart Patient Flow<br/>
+          <span class="gradient-text">Management System</span>
+        </h1>
+
+        <p class="text-slate-400 text-lg leading-relaxed mb-10 max-w-lg">
+          MediFlow replaces paper-based chaos with an intelligent digital platform — AI triage, priority queues, and real-time emergency escalation built for government hospitals in India.
+        </p>
+
+        <div class="flex flex-wrap gap-4 mb-12">
+          <a href="/signup/" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-7 py-3.5 rounded-xl transition-all shadow-xl shadow-blue-600/30 flex items-center gap-2">
+            <i class="fas fa-rocket text-sm"></i> Get Started Free
+          </a>
+          <a href="/login/" class="glass text-white font-semibold px-7 py-3.5 rounded-xl transition-all hover:bg-white/10 flex items-center gap-2">
+            <i class="fas fa-sign-in-alt text-sm"></i> Sign In
+          </a>
+        </div>
+
+        <!-- Quick stats -->
+        <div class="flex flex-wrap gap-6">
+          <div>
+            <p class="text-3xl font-black text-white">5-Level</p>
+            <p class="text-slate-400 text-sm">Triage Scoring</p>
+          </div>
+          <div class="w-px bg-slate-700"></div>
+          <div>
+            <p class="text-3xl font-black text-white">Real-Time</p>
+            <p class="text-slate-400 text-sm">Queue Updates</p>
+          </div>
+          <div class="w-px bg-slate-700"></div>
+          <div>
+            <p class="text-3xl font-black text-white">Gemini AI</p>
+            <p class="text-slate-400 text-sm">Powered Triage</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Mock Dashboard Card -->
+      <div class="float hidden lg:block">
+        <div class="glass rounded-3xl p-6 shadow-2xl">
+          <!-- Mock header -->
+          <div class="flex items-center justify-between mb-5">
+            
+            <span class="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse"></span>
+          </div>
+          <!-- Stat row -->
+          <div class="grid grid-cols-2 gap-3 mb-5">
+            <div class="stat-card rounded-2xl p-4">
+              <p class="text-2xl font-black text-blue-400">142</p>
+              <p class="text-xs text-slate-400 mt-1">Total Patients</p>
+            </div>
+            <div class="stat-card rounded-2xl p-4">
+              <p class="text-2xl font-black text-violet-400">38</p>
+              <p class="text-xs text-slate-400 mt-1">Waiting Now</p>
+            </div>
+            <div class="stat-card rounded-2xl p-4">
+              <p class="text-2xl font-black text-green-400">97</p>
+              <p class="text-xs text-slate-400 mt-1">Completed</p>
+            </div>
+            <div class="stat-card rounded-2xl p-4">
+              <p class="text-2xl font-black text-red-400">3</p>
+              <p class="text-xs text-slate-400 mt-1">Emergencies</p>
+            </div>
+          </div>
+          <!-- Triage breakdown -->
+          <p class="text-xs text-slate-400 uppercase tracking-widest mb-3">Triage Breakdown</p>
+          <div class="space-y-2">
+            <div class="flex items-center gap-3">
+              <span class="badge-1 text-xs font-bold px-2 py-0.5 rounded-full w-20 text-center">Critical</span>
+              <div class="flex-1 bg-slate-700 rounded-full h-2"><div class="bg-red-500 h-2 rounded-full" style="width:8%"></div></div>
+              <span class="text-xs text-slate-400 w-6">3</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="badge-2 text-xs font-bold px-2 py-0.5 rounded-full w-20 text-center">Emergency</span>
+              <div class="flex-1 bg-slate-700 rounded-full h-2"><div class="bg-orange-500 h-2 rounded-full" style="width:14%"></div></div>
+              <span class="text-xs text-slate-400 w-6">7</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="badge-3 text-xs font-bold px-2 py-0.5 rounded-full w-20 text-center">Urgent</span>
+              <div class="flex-1 bg-slate-700 rounded-full h-2"><div class="bg-yellow-500 h-2 rounded-full" style="width:28%"></div></div>
+              <span class="text-xs text-slate-400 w-6">18</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="badge-4 text-xs font-bold px-2 py-0.5 rounded-full w-20 text-center">Semi-Urg</span>
+              <div class="flex-1 bg-slate-700 rounded-full h-2"><div class="bg-blue-500 h-2 rounded-full" style="width:45%"></div></div>
+              <span class="text-xs text-slate-400 w-6">42</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="badge-5 text-xs font-bold px-2 py-0.5 rounded-full w-20 text-center">Minor</span>
+              <div class="flex-1 bg-slate-700 rounded-full h-2"><div class="bg-green-500 h-2 rounded-full" style="width:72%"></div></div>
+              <span class="text-xs text-slate-400 w-6">72</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PROBLEM STATEMENT BANNER
+═══════════════════════════════════════════════════════════ -->
+<section class="bg-slate-900 border-y border-slate-800 py-16">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-12 reveal">
+      <p class="text-blue-400 text-sm font-semibold uppercase tracking-widest mb-3">The Problem We Solve</p>
+      <h2 class="text-3xl lg:text-4xl font-black text-white">Government hospitals are overwhelmed</h2>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="glass rounded-2xl p-6 reveal">
+        <div class="w-12 h-12 bg-red-500/15 rounded-2xl flex items-center justify-center mb-4">
+          <i class="fas fa-clock text-red-400 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2">Hours of Waiting</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Patients with minor ailments and cardiac emergencies wait in the same queue — no priority system exists.</p>
+      </div>
+      <div class="glass rounded-2xl p-6 reveal" style="transition-delay:0.1s">
+        <div class="w-12 h-12 bg-orange-500/15 rounded-2xl flex items-center justify-center mb-4">
+          <i class="fas fa-file-alt text-orange-400 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2">Paper-Based Records</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Manual registration leads to errors, lost files, and doctors unable to access a patient's history during consultation.</p>
+      </div>
+      <div class="glass rounded-2xl p-6 reveal" style="transition-delay:0.2s">
+        <div class="w-12 h-12 bg-yellow-500/15 rounded-2xl flex items-center justify-center mb-4">
+          <i class="fas fa-eye-slash text-yellow-400 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2">Zero Visibility</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Staff have no live view of how many patients are waiting, which departments are overloaded, or where emergencies are.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CORE FEATURES
+═══════════════════════════════════════════════════════════ -->
+<section id="features" class="py-24 bg-slate-950">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <p class="text-blue-400 text-sm font-semibold uppercase tracking-widest mb-3">Core Features</p>
+      <h2 class="text-4xl lg:text-5xl font-black text-white mb-4">Everything a hospital needs</h2>
+      <p class="text-slate-400 text-lg max-w-2xl mx-auto">Eight integrated modules working together to eliminate inefficiency and save lives.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+
+      <!-- Feature 1 -->
+      <div class="feature-card glass rounded-2xl p-6 reveal">
+        <div class="w-12 h-12 bg-blue-600/20 rounded-2xl flex items-center justify-center mb-5">
+          <i class="fas fa-brain text-blue-400 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2">AI Triage Engine</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Google Gemini 2.5 Flash scores patients 1–5 based on vitals and symptoms. Rule-based fallback ensures 100% uptime.</p>
+        <div class="mt-4 flex flex-wrap gap-1">
+          <span class="text-xs bg-blue-600/20 text-blue-300 px-2 py-1 rounded-full">Gemini AI</span>
+          <span class="text-xs bg-blue-600/20 text-blue-300 px-2 py-1 rounded-full">Rule-Based</span>
+        </div>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="feature-card glass rounded-2xl p-6 reveal" style="transition-delay:0.05s">
+        <div class="w-12 h-12 bg-violet-600/20 rounded-2xl flex items-center justify-center mb-5">
+          <i class="fas fa-list-ol text-violet-400 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2">Smart Queue</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Priority-first ordering — critical patients jump the queue automatically. Department-scoped tokens reset daily.</p>
+        <div class="mt-4 flex flex-wrap gap-1">
+          <span class="text-xs bg-violet-600/20 text-violet-300 px-2 py-1 rounded-full">Priority Sort</span>
+          <span class="text-xs bg-violet-600/20 text-violet-300 px-2 py-1 rounded-full">Real-Time</span>
+        </div>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="feature-card glass rounded-2xl p-6 reveal" style="transition-delay:0.1s">
+        <div class="w-12 h-12 bg-red-600/20 rounded-2xl flex items-center justify-center mb-5">
+          <i class="fas fa-bolt text-red-400 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2">Emergency Escalation</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">One-click escalation bumps a patient to critical priority. Score 1 & 2 triage auto-routes to Emergency department.</p>
+        <div class="mt-4 flex flex-wrap gap-1">
+          <span class="text-xs bg-red-600/20 text-red-300 px-2 py-1 rounded-full">Auto-Escalate</span>
+          <span class="text-xs bg-red-600/20 text-red-300 px-2 py-1 rounded-full">Traceable</span>
+        </div>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="feature-card glass rounded-2xl p-6 reveal" style="transition-delay:0.15s">
+        <div class="w-12 h-12 bg-green-600/20 rounded-2xl flex items-center justify-center mb-5">
+          <i class="fas fa-user-injured text-green-400 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2">Patient Registration</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Digital profiles with blood group, allergies, emergency contacts, and complete visit history across all departments.</p>
+        <div class="mt-4 flex flex-wrap gap-1">
+          <span class="text-xs bg-green-600/20 text-green-300 px-2 py-1 rounded-full">Full History</span>
+          <span class="text-xs bg-green-600/20 text-green-300 px-2 py-1 rounded-full">Searchable</span>
+        </div>
+      </div>
+
+      <!-- Feature 5 -->
+      <div class="feature-card glass rounded-2xl p-6 reveal" style="transition-delay:0.2s">
+        <div class="w-12 h-12 bg-cyan-600/20 rounded-2xl flex items-center justify-center mb-5">
+          <i class="fas fa-stethoscope text-cyan-400 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2">Doctor Management</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Doctor profiles, real-time availability toggle, and weekly schedule management with per-session patient limits.</p>
+        <div class="mt-4 flex flex-wrap gap-1">
+          <span class="text-xs bg-cyan-600/20 text-cyan-300 px-2 py-1 rounded-full">Availability</span>
+          <span class="text-xs bg-cyan-600/20 text-cyan-300 px-2 py-1 rounded-full">Schedules</span>
+        </div>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="feature-card glass rounded-2xl p-6 reveal" style="transition-delay:0.25s">
+        <div class="w-12 h-12 bg-amber-600/20 rounded-2xl flex items-center justify-center mb-5">
+          <i class="fas fa-notes-medical text-amber-400 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2">Medical Records</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Full visit history per patient — diagnosis, prescriptions, notes, and follow-up dates linked to the treating doctor.</p>
+        <div class="mt-4 flex flex-wrap gap-1">
+          <span class="text-xs bg-amber-600/20 text-amber-300 px-2 py-1 rounded-full">Per Visit</span>
+          <span class="text-xs bg-amber-600/20 text-amber-300 px-2 py-1 rounded-full">Doctor-Linked</span>
+        </div>
+      </div>
+
+      <!-- Feature 7 -->
+      <div class="feature-card glass rounded-2xl p-6 reveal" style="transition-delay:0.3s">
+        <div class="w-12 h-12 bg-pink-600/20 rounded-2xl flex items-center justify-center mb-5">
+          <i class="fas fa-hospital text-pink-400 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2">Department Management</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Departments as first-class entities — queue tokens scoped per department, doctor assignments, and live filtering.</p>
+        <div class="mt-4 flex flex-wrap gap-1">
+          <span class="text-xs bg-pink-600/20 text-pink-300 px-2 py-1 rounded-full">Scoped Queues</span>
+          <span class="text-xs bg-pink-600/20 text-pink-300 px-2 py-1 rounded-full">Filterable</span>
+        </div>
+      </div>
+
+      <!-- Feature 8 -->
+      <div class="feature-card glass rounded-2xl p-6 reveal" style="transition-delay:0.35s">
+        <div class="w-12 h-12 bg-indigo-600/20 rounded-2xl flex items-center justify-center mb-5">
+          <i class="fas fa-chart-bar text-indigo-400 text-xl"></i>
+        </div>
+        <h3 class="font-bold text-white mb-2">Live Dashboard</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Real-time hospital overview — patient counts, doctor availability, queue by department, and triage breakdown.</p>
+        <div class="mt-4 flex flex-wrap gap-1">
+          <span class="text-xs bg-indigo-600/20 text-indigo-300 px-2 py-1 rounded-full">Live Stats</span>
+          <span class="text-xs bg-indigo-600/20 text-indigo-300 px-2 py-1 rounded-full">Analytics</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     AI TRIAGE DEEP DIVE
+═══════════════════════════════════════════════════════════ -->
+<section id="triage" class="py-24 bg-slate-900">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+
+      <!-- Left: Triage Score Table -->
+      <div class="reveal">
+        <p class="text-blue-400 text-sm font-semibold uppercase tracking-widest mb-3">AI Triage Engine</p>
+        <h2 class="text-4xl font-black text-white mb-4">Severity scoring<br/>powered by Gemini AI</h2>
+        <p class="text-slate-400 mb-8 leading-relaxed">A nurse enters vitals and symptoms. Gemini 2.5 Flash returns a clinical score, reasoning, and recommended action in seconds. A deterministic rule-based engine serves as an always-available fallback.</p>
+
+        <!-- Score table -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-4 glass rounded-xl px-5 py-3">
+            <span class="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center text-white font-black text-sm flex-shrink-0">1</span>
+            <div class="flex-1">
+              <p class="font-semibold text-white text-sm">Critical — Immediate</p>
+              <p class="text-slate-400 text-xs">Life threatening · Resuscitation needed</p>
+            </div>
+            <span class="text-xs text-red-400 font-semibold bg-red-500/10 px-2 py-1 rounded-full">Now</span>
+          </div>
+          <div class="flex items-center gap-4 glass rounded-xl px-5 py-3">
+            <span class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center text-white font-black text-sm flex-shrink-0">2</span>
+            <div class="flex-1">
+              <p class="font-semibold text-white text-sm">Emergency</p>
+              <p class="text-slate-400 text-xs">Urgent · Must be seen within 15 minutes</p>
+            </div>
+            <span class="text-xs text-orange-400 font-semibold bg-orange-500/10 px-2 py-1 rounded-full">15 min</span>
+          </div>
+          <div class="flex items-center gap-4 glass rounded-xl px-5 py-3">
+            <span class="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center text-white font-black text-sm flex-shrink-0">3</span>
+            <div class="flex-1">
+              <p class="font-semibold text-white text-sm">Urgent</p>
+              <p class="text-slate-400 text-xs">Serious · Seen within 30 minutes</p>
+            </div>
+            <span class="text-xs text-yellow-400 font-semibold bg-yellow-500/10 px-2 py-1 rounded-full">30 min</span>
+          </div>
+          <div class="flex items-center gap-4 glass rounded-xl px-5 py-3">
+            <span class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-black text-sm flex-shrink-0">4</span>
+            <div class="flex-1">
+              <p class="font-semibold text-white text-sm">Semi-Urgent</p>
+              <p class="text-slate-400 text-xs">Seen within 1 hour</p>
+            </div>
+            <span class="text-xs text-blue-400 font-semibold bg-blue-500/10 px-2 py-1 rounded-full">1 hr</span>
+          </div>
+          <div class="flex items-center gap-4 glass rounded-xl px-5 py-3">
+            <span class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center text-white font-black text-sm flex-shrink-0">5</span>
+            <div class="flex-1">
+              <p class="font-semibold text-white text-sm">Non-Urgent</p>
+              <p class="text-slate-400 text-xs">Routine · Seen within 2 hours</p>
+            </div>
+            <span class="text-xs text-green-400 font-semibold bg-green-500/10 px-2 py-1 rounded-full">2 hrs</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Vitals card mock -->
+      <div class="reveal" style="transition-delay:0.15s">
+        <div class="glass rounded-3xl p-7 shadow-2xl">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <p class="text-xs text-slate-400 uppercase tracking-widest">Triage Assessment</p>
+              <p class="font-bold text-lg">Patient: Ramesh Kumar</p>
+            </div>
+            <div class="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center">
+              <i class="fas fa-brain text-blue-400"></i>
+            </div>
+          </div>
+
+          <!-- Vitals grid -->
+          <div class="grid grid-cols-3 gap-3 mb-6">
+            <div class="bg-slate-800/60 rounded-xl p-3 text-center">
+              <p class="text-xs text-slate-400 mb-1">BP</p>
+              <p class="font-bold text-white">185/110</p>
+              <p class="text-xs text-red-400">High</p>
+            </div>
+            <div class="bg-slate-800/60 rounded-xl p-3 text-center">
+              <p class="text-xs text-slate-400 mb-1">Pulse</p>
+              <p class="font-bold text-white">112 bpm</p>
+              <p class="text-xs text-orange-400">Elevated</p>
+            </div>
+            <div class="bg-slate-800/60 rounded-xl p-3 text-center">
+              <p class="text-xs text-slate-400 mb-1">SpO₂</p>
+              <p class="font-bold text-white">94%</p>
+              <p class="text-xs text-yellow-400">Low</p>
+            </div>
+            <div class="bg-slate-800/60 rounded-xl p-3 text-center">
+              <p class="text-xs text-slate-400 mb-1">Temp</p>
+              <p class="font-bold text-white">38.9°C</p>
+              <p class="text-xs text-yellow-400">Fever</p>
+            </div>
+            <div class="bg-slate-800/60 rounded-xl p-3 text-center">
+              <p class="text-xs text-slate-400 mb-1">Pain</p>
+              <p class="font-bold text-white">8 / 10</p>
+              <p class="text-xs text-red-400">Severe</p>
+            </div>
+            <div class="bg-slate-800/60 rounded-xl p-3 text-center">
+              <p class="text-xs text-slate-400 mb-1">Source</p>
+              <p class="font-bold text-blue-400 text-xs">Gemini AI</p>
+              <p class="text-xs text-slate-400">Engine</p>
+            </div>
+          </div>
+
+          <!-- AI Result -->
+          <div class="bg-red-500/10 border border-red-500/30 rounded-2xl p-4">
+            <div class="flex items-center gap-3 mb-2">
+              <span class="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center text-white font-black text-sm">2</span>
+              <div>
+                <p class="font-bold text-white text-sm">Emergency — Seen within 15 min</p>
+                <p class="text-xs text-slate-400">Auto-escalated to Emergency Dept.</p>
+              </div>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">Hypertensive urgency with tachycardia and elevated pain. Immediate BP management required. Monitor for cardiac event.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODULES / PAGES
+═══════════════════════════════════════════════════════════ -->
+<section id="modules" class="py-24 bg-slate-950">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <p class="text-blue-400 text-sm font-semibold uppercase tracking-widest mb-3">System Modules</p>
+      <h2 class="text-4xl font-black text-white mb-4">10 pages. One unified system.</h2>
+      <p class="text-slate-400 text-lg max-w-xl mx-auto">Every module is accessible from the sidebar and protected by session authentication.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Module cards -->
+      <div class="glass rounded-2xl p-5 flex items-start gap-4 reveal feature-card">
+        <div class="w-10 h-10 bg-blue-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-chart-pie text-blue-400"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="font-semibold text-white">Dashboard</p>
+            <span class="text-xs text-slate-500 font-mono">/</span>
+          </div>
+          <p class="text-slate-400 text-sm">Live hospital overview — patients, queues, emergencies, doctor availability.</p>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-5 flex items-start gap-4 reveal feature-card" style="transition-delay:0.05s">
+        <div class="w-10 h-10 bg-green-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-users text-green-400"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="font-semibold text-white">Patients</p>
+            <span class="text-xs text-slate-500 font-mono">/patients/</span>
+          </div>
+          <p class="text-slate-400 text-sm">Register patients, search by name or phone, view full medical history.</p>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-5 flex items-start gap-4 reveal feature-card" style="transition-delay:0.1s">
+        <div class="w-10 h-10 bg-violet-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-brain text-violet-400"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="font-semibold text-white">AI Triage</p>
+            <span class="text-xs text-slate-500 font-mono">/triage/</span>
+          </div>
+          <p class="text-slate-400 text-sm">Submit vitals and symptoms, receive AI-generated triage score and reasoning.</p>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-5 flex items-start gap-4 reveal feature-card" style="transition-delay:0.15s">
+        <div class="w-10 h-10 bg-cyan-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-history text-cyan-400"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="font-semibold text-white">Triage History</p>
+            <span class="text-xs text-slate-500 font-mono">/assessments/</span>
+          </div>
+          <p class="text-slate-400 text-sm">All past assessments with filters by patient, score, and AI source.</p>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-5 flex items-start gap-4 reveal feature-card" style="transition-delay:0.2s">
+        <div class="w-10 h-10 bg-indigo-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-ticket-alt text-indigo-400"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="font-semibold text-white">Queue Management</p>
+            <span class="text-xs text-slate-500 font-mono">/queue/</span>
+          </div>
+          <p class="text-slate-400 text-sm">Issue tokens, call next patient, mark done, skip — all per department.</p>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-5 flex items-start gap-4 reveal feature-card" style="transition-delay:0.25s">
+        <div class="w-10 h-10 bg-teal-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-user-md text-teal-400"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="font-semibold text-white">Doctors</p>
+            <span class="text-xs text-slate-500 font-mono">/doctors/</span>
+          </div>
+          <p class="text-slate-400 text-sm">Doctor profiles, specialization, department, and live availability toggle.</p>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-5 flex items-start gap-4 reveal feature-card" style="transition-delay:0.3s">
+        <div class="w-10 h-10 bg-amber-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-calendar-alt text-amber-400"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="font-semibold text-white">Schedules</p>
+            <span class="text-xs text-slate-500 font-mono">/schedules/</span>
+          </div>
+          <p class="text-slate-400 text-sm">Weekly schedule per doctor — days, hours, and max patients per session.</p>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-5 flex items-start gap-4 reveal feature-card" style="transition-delay:0.35s">
+        <div class="w-10 h-10 bg-pink-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-file-medical text-pink-400"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="font-semibold text-white">Medical Records</p>
+            <span class="text-xs text-slate-500 font-mono">/records/</span>
+          </div>
+          <p class="text-slate-400 text-sm">Diagnosis, prescriptions, notes, and follow-up dates per visit.</p>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-5 flex items-start gap-4 reveal feature-card" style="transition-delay:0.4s">
+        <div class="w-10 h-10 bg-red-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-exclamation-triangle text-red-400"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="font-semibold text-white">Emergency</p>
+            <span class="text-xs text-slate-500 font-mono">/emergency/</span>
+          </div>
+          <p class="text-slate-400 text-sm">Raise and resolve emergency escalations with full audit trail.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HOW IT WORKS — WORKFLOW
+═══════════════════════════════════════════════════════════ -->
+<section id="workflow" class="py-24 bg-slate-900">
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <p class="text-blue-400 text-sm font-semibold uppercase tracking-widest mb-3">How It Works</p>
+      <h2 class="text-4xl font-black text-white mb-4">From arrival to discharge</h2>
+      <p class="text-slate-400 text-lg">A patient's journey through MediFlow in 6 steps.</p>
+    </div>
+
+    <div class="relative">
+      <!-- Vertical line -->
+      <div class="absolute left-8 top-0 bottom-0 w-0.5 timeline-line hidden md:block"></div>
+
+      <div class="space-y-8">
+
+        <!-- Step 1 -->
+        <div class="flex gap-6 reveal">
+          <div class="relative flex-shrink-0">
+            <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/30 z-10 relative">
+              <i class="fas fa-user-plus text-white text-xl"></i>
+            </div>
+          </div>
+          <div class="glass rounded-2xl p-5 flex-1">
+            <p class="text-xs text-blue-400 font-semibold uppercase tracking-widest mb-1">Step 1</p>
+            <h3 class="font-bold text-white mb-2">Patient Registration</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">Staff registers the patient digitally — name, age, blood group, allergies, and emergency contact. Existing patients are found instantly by phone or name search.</p>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="flex gap-6 reveal" style="transition-delay:0.1s">
+          <div class="relative flex-shrink-0">
+            <div class="w-16 h-16 bg-violet-600 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-600/30 z-10 relative">
+              <i class="fas fa-heartbeat text-white text-xl"></i>
+            </div>
+          </div>
+          <div class="glass rounded-2xl p-5 flex-1">
+            <p class="text-xs text-violet-400 font-semibold uppercase tracking-widest mb-1">Step 2</p>
+            <h3 class="font-bold text-white mb-2">Vitals & Triage Assessment</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">A nurse enters BP, pulse, SpO₂, temperature, pain scale, and symptom description. Gemini AI returns a triage score 1–5 with clinical reasoning in under 3 seconds.</p>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="flex gap-6 reveal" style="transition-delay:0.2s">
+          <div class="relative flex-shrink-0">
+            <div class="w-16 h-16 bg-cyan-600 rounded-2xl flex items-center justify-center shadow-lg shadow-cyan-600/30 z-10 relative">
+              <i class="fas fa-ticket-alt text-white text-xl"></i>
+            </div>
+          </div>
+          <div class="glass rounded-2xl p-5 flex-1">
+            <p class="text-xs text-cyan-400 font-semibold uppercase tracking-widest mb-1">Step 3</p>
+            <h3 class="font-bold text-white mb-2">Token Issued</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">A queue token is issued for the relevant department. Score 1 & 2 patients are auto-routed to Emergency with a token already created — no manual steps needed.</p>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="flex gap-6 reveal" style="transition-delay:0.3s">
+          <div class="relative flex-shrink-0">
+            <div class="w-16 h-16 bg-amber-600 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-600/30 z-10 relative">
+              <i class="fas fa-sort-amount-up text-white text-xl"></i>
+            </div>
+          </div>
+          <div class="glass rounded-2xl p-5 flex-1">
+            <p class="text-xs text-amber-400 font-semibold uppercase tracking-widest mb-1">Step 4</p>
+            <h3 class="font-bold text-white mb-2">Priority Queue Ordering</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">The queue orders by triage score first, then arrival time. A critical patient arriving at 3pm is seen before a minor case from 9am — automatically, every time.</p>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="flex gap-6 reveal" style="transition-delay:0.4s">
+          <div class="relative flex-shrink-0">
+            <div class="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center shadow-lg shadow-red-600/30 z-10 relative">
+              <i class="fas fa-bolt text-white text-xl"></i>
+            </div>
+          </div>
+          <div class="glass rounded-2xl p-5 flex-1">
+            <p class="text-xs text-red-400 font-semibold uppercase tracking-widest mb-1">Step 5 (if needed)</p>
+            <h3 class="font-bold text-white mb-2">Emergency Escalation</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">If a waiting patient deteriorates, staff raises an emergency alert. The system bumps their token to priority 1 and logs the escalation with full traceability.</p>
+          </div>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="flex gap-6 reveal" style="transition-delay:0.5s">
+          <div class="relative flex-shrink-0">
+            <div class="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-600/30 z-10 relative">
+              <i class="fas fa-check-circle text-white text-xl"></i>
+            </div>
+          </div>
+          <div class="glass rounded-2xl p-5 flex-1">
+            <p class="text-xs text-green-400 font-semibold uppercase tracking-widest mb-1">Step 6</p>
+            <h3 class="font-bold text-white mb-2">Consultation & Medical Record</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">Doctor marks the token as done. A medical record is created with diagnosis, prescription, and follow-up date — permanently linked to the patient's history.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TECH STACK
+═══════════════════════════════════════════════════════════ -->
+<section id="tech" class="py-24 bg-slate-950">
+  <!--div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <p class="text-blue-400 text-sm font-semibold uppercase tracking-widest mb-3">Technology Stack</p>
+      <h2 class="text-4xl font-black text-white mb-4">Built on proven, production-grade tech</h2>
+      <p class="text-slate-400 text-lg max-w-xl mx-auto">Every component chosen for reliability, performance, and ease of deployment in government infrastructure.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+      <div class="glass rounded-2xl p-6 reveal feature-card">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-green-600/20 rounded-xl flex items-center justify-center">
+            <i class="fab fa-python text-green-400 text-2xl"></i>
+          </div>
+          <div>
+            <p class="font-bold text-white">Django 4.2</p>
+            <p class="text-xs text-slate-400">Backend Framework</p>
+          </div>
+        </div>
+        <p class="text-slate-400 text-sm">MVT architecture with built-in ORM, admin panel, session auth, and CSRF protection out of the box.</p>
+      </div>
+
+      <div class="glass rounded-2xl p-6 reveal feature-card" style="transition-delay:0.05s">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-orange-600/20 rounded-xl flex items-center justify-center">
+            <i class="fas fa-plug text-orange-400 text-xl"></i>
+          </div>
+          <div>
+            <p class="font-bold text-white">Django REST Framework</p>
+            <p class="text-xs text-slate-400">REST API Layer</p>
+          </div>
+        </div>
+        <p class="text-slate-400 text-sm">ViewSets, serializers, and routers powering all JSON API endpoints consumed by the frontend.</p>
+      </div>
+
+      <div class="glass rounded-2xl p-6 reveal feature-card" style="transition-delay:0.1s">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-blue-600/20 rounded-xl flex items-center justify-center">
+            <i class="fas fa-robot text-blue-400 text-xl"></i>
+          </div>
+          <div>
+            <p class="font-bold text-white">Google Gemini 2.5 Flash</p>
+            <p class="text-xs text-slate-400">AI Triage Engine</p>
+          </div>
+        </div>
+        <p class="text-slate-400 text-sm">Structured JSON prompts return triage score, clinical reasoning, and recommended action. Fast, focused, no extended thinking.</p>
+      </div>
+
+      <div class="glass rounded-2xl p-6 reveal feature-card" style="transition-delay:0.15s">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-slate-600/20 rounded-xl flex items-center justify-center">
+            <i class="fas fa-database text-slate-400 text-xl"></i>
+          </div>
+          <div>
+            <p class="font-bold text-white">SQLite / PostgreSQL</p>
+            <p class="text-xs text-slate-400">Database</p>
+          </div>
+        </div>
+        <p class="text-slate-400 text-sm">SQLite for local development, PostgreSQL for production on Render. Switched via a single environment variable.</p>
+      </div>
+
+      <div class="glass rounded-2xl p-6 reveal feature-card" style="transition-delay:0.2s">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-cyan-600/20 rounded-xl flex items-center justify-center">
+            <i class="fas fa-wind text-cyan-400 text-xl"></i>
+          </div>
+          <div>
+            <p class="font-bold text-white">Tailwind CSS</p>
+            <p class="text-xs text-slate-400">Frontend Styling</p>
+          </div>
+        </div>
+        <p class="text-slate-400 text-sm">Utility-first CSS via CDN. Consistent design system across all 10 pages with zero build step required.</p>
+      </div>
+
+      <div class="glass rounded-2xl p-6 reveal feature-card" style="transition-delay:0.25s">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-yellow-600/20 rounded-xl flex items-center justify-center">
+            <i class="fab fa-js text-yellow-400 text-2xl"></i>
+          </div>
+          <div>
+            <p class="font-bold text-white">Vanilla JavaScript</p>
+            <p class="text-xs text-slate-400">Frontend Logic</p>
+          </div>
+        </div>
+        <p class="text-slate-400 text-sm">Lightweight api.js helper auto-attaches CSRF tokens and handles session expiry redirects — no framework overhead.</p>
+      </div>
+
+      <div class="glass rounded-2xl p-6 reveal feature-card" style="transition-delay:0.3s">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-red-600/20 rounded-xl flex items-center justify-center">
+            <i class="fas fa-bolt text-red-400 text-xl"></i>
+          </div>
+          <div>
+            <p class="font-bold text-white">Django Channels + Redis</p>
+            <p class="text-xs text-slate-400">Real-Time WebSockets</p>
+          </div>
+        </div>
+        <p class="text-slate-400 text-sm">WebSocket consumers broadcast queue updates to TV display boards in real time via Redis channel layers.</p>
+      </div>
+
+      <div class="glass rounded-2xl p-6 reveal feature-card" style="transition-delay:0.35s">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-green-600/20 rounded-xl flex items-center justify-center">
+            <i class="fas fa-tasks text-green-400 text-xl"></i>
+          </div>
+          <div>
+            <p class="font-bold text-white">Celery</p>
+            <p class="text-xs text-slate-400">Background Tasks</p>
+          </div>
+        </div>
+        <p class="text-slate-400 text-sm">Async SMS notifications via Twilio sent as background tasks — token assignment and patient call alerts.</p>
+      </div>
+
+      <div class="glass rounded-2xl p-6 reveal feature-card" style="transition-delay:0.4s">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-violet-600/20 rounded-xl flex items-center justify-center">
+            <i class="fas fa-shield-alt text-violet-400 text-xl"></i>
+          </div>
+          <div>
+            <p class="font-bold text-white">Django Auth + CSRF</p>
+            <p class="text-xs text-slate-400">Security</p>
+          </div>
+        </div>
+        <p class="text-slate-400 text-sm">Session-based authentication with CSRF protection on all forms and API calls. Secrets stored in .env, never in source.</p>
+      </div>
+
+    </div>
+  </div-->
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     DATA MODELS
+═══════════════════════════════════════════════════════════ -->
+<section class="py-24 bg-slate-900">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <p class="text-blue-400 text-sm font-semibold uppercase tracking-widest mb-3">Data Architecture</p>
+      <h2 class="text-4xl font-black text-white mb-4">9 models. Fully relational.</h2>
+      <p class="text-slate-400 text-lg max-w-xl mx-auto">Every entity is a proper Django model with foreign keys, indexes, and admin integration.</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="glass rounded-2xl p-5 reveal">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 bg-blue-600/20 rounded-lg flex items-center justify-center"><i class="fas fa-user text-blue-400 text-sm"></i></div>
+          <p class="font-bold text-white">Patient</p>
+        </div>
+        <p class="text-slate-400 text-sm">Demographics, blood group, allergies, emergency contact. The root entity everything links to.</p>
+      </div>
+      <div class="glass rounded-2xl p-5 reveal" style="transition-delay:0.05s">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 bg-violet-600/20 rounded-lg flex items-center justify-center"><i class="fas fa-brain text-violet-400 text-sm"></i></div>
+          <p class="font-bold text-white">TriageAssessment</p>
+        </div>
+        <p class="text-slate-400 text-sm">Vitals, symptoms, AI score, reasoning, action, and source (Gemini or rule-based).</p>
+      </div>
+      <div class="glass rounded-2xl p-5 reveal" style="transition-delay:0.1s">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 bg-cyan-600/20 rounded-lg flex items-center justify-center"><i class="fas fa-ticket-alt text-cyan-400 text-sm"></i></div>
+          <p class="font-bold text-white">Token</p>
+        </div>
+        <p class="text-slate-400 text-sm">Queue entry linking patient to department with triage priority, status, and timestamps.</p>
+      </div>
+      <div class="glass rounded-2xl p-5 reveal" style="transition-delay:0.15s">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 bg-red-600/20 rounded-lg flex items-center justify-center"><i class="fas fa-bolt text-red-400 text-sm"></i></div>
+          <p class="font-bold text-white">EmergencyEscalation</p>
+        </div>
+        <p class="text-slate-400 text-sm">Emergency alerts linked to triage assessment and queue token with resolution tracking.</p>
+      </div>
+      <div class="glass rounded-2xl p-5 reveal" style="transition-delay:0.2s">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 bg-teal-600/20 rounded-lg flex items-center justify-center"><i class="fas fa-user-md text-teal-400 text-sm"></i></div>
+          <p class="font-bold text-white">Doctor</p>
+        </div>
+        <p class="text-slate-400 text-sm">Profile, specialization, department, registration number, and live availability flag.</p>
+      </div>
+      <div class="glass rounded-2xl p-5 reveal" style="transition-delay:0.25s">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 bg-amber-600/20 rounded-lg flex items-center justify-center"><i class="fas fa-calendar text-amber-400 text-sm"></i></div>
+          <p class="font-bold text-white">DoctorSchedule</p>
+        </div>
+        <p class="text-slate-400 text-sm">Weekly schedule per doctor — day, start/end time, max patients, active flag.</p>
+      </div>
+      <div class="glass rounded-2xl p-5 reveal" style="transition-delay:0.3s">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 bg-pink-600/20 rounded-lg flex items-center justify-center"><i class="fas fa-hospital text-pink-400 text-sm"></i></div>
+          <p class="font-bold text-white">Department</p>
+        </div>
+        <p class="text-slate-400 text-sm">Named departments with unique codes — scopes queues, doctor assignments, and filters.</p>
+      </div>
+      <div class="glass rounded-2xl p-5 reveal" style="transition-delay:0.35s">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 bg-green-600/20 rounded-lg flex items-center justify-center"><i class="fas fa-notes-medical text-green-400 text-sm"></i></div>
+          <p class="font-bold text-white">MedicalRecord</p>
+        </div>
+        <p class="text-slate-400 text-sm">Visit history — diagnosis, prescription, notes, follow-up date, linked to doctor.</p>
+      </div>
+      <div class="glass rounded-2xl p-5 reveal" style="transition-delay:0.4s">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-8 h-8 bg-indigo-600/20 rounded-lg flex items-center justify-center"><i class="fas fa-sms text-indigo-400 text-sm"></i></div>
+          <p class="font-bold text-white">Notification</p>
+        </div>
+        <p class="text-slate-400 text-sm">SMS notification log — patient, message, type, status, and Twilio response tracking.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CTA SECTION
+═══════════════════════════════════════════════════════════ -->
+<section class="py-24 hero-bg relative overflow-hidden">
+  <div class="absolute inset-0 opacity-10"
+    style="background-image: linear-gradient(rgba(96,165,250,0.3) 1px, transparent 1px),
+                             linear-gradient(90deg, rgba(96,165,250,0.3) 1px, transparent 1px);
+           background-size: 60px 60px;">
+  </div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+  <div class="max-w-3xl mx-auto px-6 text-center relative z-10 reveal">
+    <div class="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-blue-600/40">
+      <i class="fas fa-heartbeat text-white text-3xl"></i>
+    </div>
+    <h2 class="text-4xl lg:text-5xl font-black text-white mb-6">Ready to transform<br/>patient care?</h2>
+    <p class="text-slate-400 text-lg mb-10 max-w-xl mx-auto">Set up your MediFlow instance in minutes. Create a superuser account and start managing your hospital smarter.</p>
+    <div class="flex flex-wrap gap-4 justify-center">
+      <a href="/signup/" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-4 rounded-2xl transition-all shadow-2xl shadow-blue-600/30 flex items-center gap-3 text-lg">
+        <i class="fas fa-rocket"></i> Create Your Account
+      </a>
+      <a href="/login/" class="glass hover:bg-white/10 text-white font-bold px-8 py-4 rounded-2xl transition-all flex items-center gap-3 text-lg">
+        <i class="fas fa-sign-in-alt"></i> Sign In
+      </a>
+    </div>
+    <p class="text-slate-500 text-sm mt-8">Built for government hospitals in India · Django 4.2 · Google Gemini AI</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════════ -->
+<footer class="bg-slate-950 border-t border-slate-800 py-12">
+  <div class="max-w-7xl mx-auto px-6">
+    <!--div class="flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
+          <i class="fas fa-heartbeat text-white text-sm"></i>
+        </div>
+        <span class="text-xl font-bold">Medi<span class="text-blue-400">Flow</span></span>
+      </div>
+      <div class="flex flex-wrap gap-6 text-sm text-slate-400">
+        <a href="#features"  class="hover:text-white transition-colors">Features</a>
+        <a href="#triage"    class="hover:text-white transition-colors">AI Triage</a>
+        <a href="#modules"   class="hover:text-white transition-colors">Modules</a>
+        <a href="#tech"      class="hover:text-white transition-colors">Tech Stack</a>
+        <a href="#workflow"  class="hover:text-white transition-colors">How It Works</a>
+        <a href="/login/"    class="hover:text-white transition-colors">Sign In</a>
+        <a href="/admin/"    class="hover:text-white transition-colors">Admin</a>
+      </div-->
+      <p class="text-slate-500 text-sm">MediFlow v1.0 · Government District Hospital</p>
+    </div!-->
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════════════════════ -->
+<script>
+  // Navbar scroll effect
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 20) {
+      navbar.classList.add('nav-blur');
+    } else {
+      navbar.classList.remove('nav-blur');
+    }
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

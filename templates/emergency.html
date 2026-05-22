@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+{% block title %}Emergency — MediFlow{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+  <div>
+    <h1 class="text-2xl font-bold text-slate-800">Emergency Escalations</h1>
+    <p class="text-slate-500 text-sm mt-1">Track and manage critical patient escalations</p>
+  </div>
+  <button onclick="openModal('emergency-modal')" class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
+    <i class="fas fa-ambulance"></i> Raise Emergency
+  </button>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+  <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100 flex items-center gap-4">
+    <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+      <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+    </div>
+    <div>
+      <p class="text-2xl font-bold text-red-600" id="em-active">—</p>
+      <p class="text-sm text-slate-500">Active Emergencies</p>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center gap-4">
+    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+      <i class="fas fa-check-circle text-green-600 text-xl"></i>
+    </div>
+    <div>
+      <p class="text-2xl font-bold text-slate-800" id="em-resolved">—</p>
+      <p class="text-sm text-slate-500">Resolved Today</p>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center gap-4">
+    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+      <i class="fas fa-list text-blue-600 text-xl"></i>
+    </div>
+    <div>
+      <p class="text-2xl font-bold text-slate-800" id="em-total">—</p>
+      <p class="text-sm text-slate-500">Total Today</p>
+    </div>
+  </div>
+</div>
+
+<!-- Active Emergencies -->
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">
+  <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+    <h2 class="font-semibold text-slate-800 flex items-center gap-2">
+      <span class="w-2 h-2 bg-red-500 rounded-full pulse-dot"></span>
+      Active Emergencies
+    </h2>
+    <button onclick="loadEmergencies()" class="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1">
+      <i class="fas fa-sync-alt"></i> Refresh
+    </button>
+  </div>
+  <div id="active-list" class="divide-y divide-slate-50">
+    <div class="text-center py-12 text-slate-400">
+      <i class="fas fa-spinner fa-spin text-2xl mb-2 block"></i> Loading...
+    </div>
+  </div>
+</div>
+
+<!-- All Escalations Table -->
+<div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+  <div class="p-5 border-b border-slate-100">
+    <h2 class="font-semibold text-slate-800">All Escalations</h2>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full">
+      <thead>
+        <tr class="bg-slate-50 border-b border-slate-100">
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Patient</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Reason</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Escalated By</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Status</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Time</th>
+          <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="emergency-table">
+        <tr><td colspan="6" class="text-center py-10 text-slate-400">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Raise Emergency Modal -->
+<div id="emergency-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+    <div class="p-6 border-b border-red-100 flex items-center justify-between bg-red-50 rounded-t-2xl">
+      <h3 class="font-bold text-lg text-red-700 flex items-center gap-2">
+        <i class="fas fa-ambulance"></i> Raise Emergency Alert
+      </h3>
+      <button onclick="closeModal('emergency-modal')" class="text-slate-400 hover:text-slate-600">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+    <form id="emergency-form" class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Patient *</label>
+        <div class="relative">
+          <input type="text" id="patient-search" autocomplete="off"
+            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+            placeholder="Search by name or phone..." />
+          <input type="hidden" name="patient" id="patient-id-hidden" required />
+          <!-- Dropdown results -->
+          <div id="patient-dropdown"
+            class="absolute z-50 w-full bg-white border border-slate-200 rounded-xl shadow-lg mt-1 hidden max-h-48 overflow-y-auto">
+          </div>
+        </div>
+        <p class="text-xs text-slate-400 mt-1" id="patient-selected-label"></p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Token ID (optional)</label>
+        <input name="token" type="number" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Queue token ID if assigned" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Emergency Reason *</label>
+        <textarea name="reason" rows="3" required class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Describe the emergency situation..."></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Escalated By *</label>
+        <input name="escalated_by" type="text" required class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Staff name / designation" />
+      </div>
+      <div id="em-form-error" class="hidden text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg"></div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="closeModal('emergency-modal')" class="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50">Cancel</button>
+        <button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-sm font-medium transition-colors">
+          <i class="fas fa-ambulance mr-2"></i>Raise Alert
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Resolve Modal -->
+<div id="resolve-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+    <h3 class="font-bold text-lg text-slate-800 mb-4">Resolve Emergency</h3>
+    <input type="hidden" id="resolve-id" />
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-slate-700 mb-1">Resolution Notes</label>
+      <textarea id="resolve-notes" rows="3" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Describe how the emergency was resolved..."></textarea>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="closeModal('resolve-modal')" class="flex-1 border border-slate-200 text-slate-600 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50">Cancel</button>
+      <button onclick="submitResolve()" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-sm font-medium transition-colors">Mark Resolved</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const statusClasses = {
+    active: 'bg-red-100 text-red-700',
+    resolved: 'bg-green-100 text-green-700',
+    transferred: 'bg-blue-100 text-blue-700',
+  };
+
+  function timeAgo(dt) {
+    const mins = Math.floor((Date.now() - new Date(dt)) / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return mins + ' min ago';
+    return Math.floor(mins / 60) + 'h ago';
+  }
+
+  async function loadEmergencies() {
+    const res = await apiFetch('/api/emergency/');
+    if (!res) return;
+    const data = await res.json();
+    const items = data.results || data;
+
+    const active = items.filter(e => e.status === 'active');
+    const today = new Date().toDateString();
+    const resolvedToday = items.filter(e => e.status === 'resolved' && new Date(e.escalated_at).toDateString() === today);
+
+    document.getElementById('em-active').textContent = active.length;
+    document.getElementById('em-resolved').textContent = resolvedToday.length;
+    document.getElementById('em-total').textContent = items.filter(e => new Date(e.escalated_at).toDateString() === today).length;
+
+    const activeList = document.getElementById('active-list');
+    if (!active.length) {
+      activeList.innerHTML = '<div class="text-center py-10 text-slate-400"><i class="fas fa-check-circle text-3xl mb-2 block text-green-300"></i>No active emergencies</div>';
+    } else {
+      activeList.innerHTML = active.map(e => `
+        <div class="p-5 flex items-start justify-between gap-4 bg-red-50/50">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i class="fas fa-exclamation text-red-600"></i>
+            </div>
+            <div>
+              <p class="font-semibold text-slate-800">${e.patient_name || 'Patient #' + e.patient}</p>
+              <p class="text-sm text-slate-600 mt-0.5">${e.reason}</p>
+              <p class="text-xs text-slate-400 mt-1">By ${e.escalated_by} · ${timeAgo(e.escalated_at)}</p>
+            </div>
+          </div>
+          <button onclick="openResolve(${e.id})" class="flex-shrink-0 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">Resolve</button>
+        </div>
+      `).join('');
+    }
+
+    const tbody = document.getElementById('emergency-table');
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-slate-400">No escalations recorded</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(e => `
+      <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+        <td class="px-5 py-4 text-sm font-medium text-slate-800">${e.patient_name || 'Patient #' + e.patient}</td>
+        <td class="px-5 py-4 text-sm text-slate-600 max-w-xs truncate">${e.reason}</td>
+        <td class="px-5 py-4 text-sm text-slate-600">${e.escalated_by}</td>
+        <td class="px-5 py-4"><span class="text-xs font-semibold px-2 py-1 rounded-full capitalize ${statusClasses[e.status] || ''}">${e.status}</span></td>
+        <td class="px-5 py-4 text-xs text-slate-400">${new Date(e.escalated_at).toLocaleString()}</td>
+        <td class="px-5 py-4">
+          ${e.status === 'active' ? `<button onclick="openResolve(${e.id})" class="text-xs bg-green-50 text-green-600 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors">Resolve</button>` : '<span class="text-xs text-slate-400">—</span>'}
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  document.getElementById('emergency-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const body = {};
+    fd.forEach((v, k) => { if (v) body[k] = isNaN(v) ? v : Number(v); });
+    const res = await apiFetch('/api/emergency/escalate/', { method: 'POST', body: JSON.stringify(body) });
+    if (!res) return;
+    if (res.ok) {
+      closeModal('emergency-modal');
+      e.target.reset();
+      // Also clear patient search fields
+      document.getElementById('patient-search').value = '';
+      document.getElementById('patient-id-hidden').value = '';
+      document.getElementById('patient-selected-label').textContent = '';
+      loadEmergencies();
+    } else {
+      const err = await res.json();
+      const errEl = document.getElementById('em-form-error');
+      errEl.textContent = JSON.stringify(err);
+      errEl.classList.remove('hidden');
+    }
+  });
+
+  function openResolve(id) {
+    document.getElementById('resolve-id').value = id;
+    document.getElementById('resolve-notes').value = '';
+    openModal('resolve-modal');
+  }
+
+  async function submitResolve() {
+    const id = document.getElementById('resolve-id').value;
+    const notes = document.getElementById('resolve-notes').value;
+    await apiFetch(`/api/emergency/${id}/resolve/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ resolution_notes: notes })
+    });
+    closeModal('resolve-modal');
+    loadEmergencies();
+  }
+
+  function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+    // Reset patient search when emergency modal closes
+    if (id === 'emergency-modal') {
+      document.getElementById('patient-search').value = '';
+      document.getElementById('patient-id-hidden').value = '';
+      document.getElementById('patient-selected-label').textContent = '';
+      document.getElementById('patient-dropdown').classList.add('hidden');
+    }
+  }
+
+  // ── Patient search autocomplete ──────────────────────────────────────────
+  let searchTimer = null;
+
+  document.getElementById('patient-search').addEventListener('input', function () {
+    clearTimeout(searchTimer);
+    const q = this.value.trim();
+    // Clear selection if user types again
+    document.getElementById('patient-id-hidden').value = '';
+    document.getElementById('patient-selected-label').textContent = '';
+    if (q.length < 2) {
+      document.getElementById('patient-dropdown').classList.add('hidden');
+      return;
+    }
+    searchTimer = setTimeout(() => searchPatients(q), 300);
+  });
+
+  // Hide dropdown on outside click
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#patient-search') && !e.target.closest('#patient-dropdown')) {
+      document.getElementById('patient-dropdown').classList.add('hidden');
+    }
+  });
+
+  async function searchPatients(q) {
+    const res = await apiFetch(`/api/patients/?name=${encodeURIComponent(q)}`);
+    if (!res) return;
+    const data = await res.json();
+    const patients = data.results || data;
+    const dropdown = document.getElementById('patient-dropdown');
+
+    if (!patients.length) {
+      dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-slate-400">No patients found</div>';
+      dropdown.classList.remove('hidden');
+      return;
+    }
+
+    dropdown.innerHTML = patients.map(p => `
+      <div onclick="selectPatient(${p.id}, '${p.name.replace(/'/g,"\\'")}', '${p.phone}')"
+        class="px-4 py-3 hover:bg-red-50 cursor-pointer border-b border-slate-50 last:border-0 transition-colors">
+        <p class="text-sm font-medium text-slate-800">${p.name}</p>
+        <p class="text-xs text-slate-400">${p.phone} &nbsp;·&nbsp; Age ${p.age} &nbsp;·&nbsp; ${p.blood_group || '—'}</p>
+      </div>
+    `).join('');
+    dropdown.classList.remove('hidden');
+  }
+
+  function selectPatient(id, name, phone) {
+    document.getElementById('patient-id-hidden').value = id;
+    document.getElementById('patient-search').value = name;
+    document.getElementById('patient-selected-label').innerHTML =
+      `<i class="fas fa-check-circle text-green-500 mr-1"></i>${name} &nbsp;·&nbsp; ${phone}`;
+    document.getElementById('patient-selected-label').className = 'text-xs text-green-600 mt-1';
+    document.getElementById('patient-dropdown').classList.add('hidden');
+  }
+
+  loadEmergencies();
+  setInterval(loadEmergencies, 15000);
+</script>
+{% endblock %}

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Queue Display — {{ department|title }} — MediFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>* { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <div class="bg-slate-800 border-b border-slate-700 px-8 py-5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+        <i class="fas fa-heartbeat text-white"></i>
+      </div>
+      <div>
+        <p class="font-bold text-xl">MediFlow</p>
+        <p class="text-slate-400 text-sm capitalize">{{ department }} Department Queue</p>
+      </div>
+    </div>
+    <div class="text-right">
+      <p id="clock" class="text-2xl font-bold text-blue-400"></p>
+      <p id="date" class="text-slate-400 text-sm"></p>
+    </div>
+  </div>
+
+  <!-- Now Serving -->
+  <div class="bg-blue-600 px-8 py-8 text-center">
+    <p class="text-blue-200 text-sm font-semibold uppercase tracking-widest mb-2">Now Serving</p>
+    <p id="current-token" class="text-8xl font-black tracking-tight">—</p>
+    <p id="current-patient" class="text-blue-200 text-lg mt-2">Waiting for next patient</p>
+  </div>
+
+  <!-- Waiting Queue -->
+  <div class="flex-1 p-8">
+    <p class="text-slate-400 text-sm font-semibold uppercase tracking-widest mb-4">
+      Next in Queue — <span id="waiting-count">0</span> waiting
+    </p>
+    <div id="queue-list" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="text-center text-slate-500 col-span-full py-8">Loading queue...</div>
+    </div>
+  </div>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script>
+    const dept = '{{ department }}';
+    const triageColors = {
+      1: 'border-red-500 bg-red-900/30',
+      2: 'border-orange-500 bg-orange-900/30',
+      3: 'border-yellow-500 bg-yellow-900/30',
+      4: 'border-blue-500 bg-blue-900/30',
+      5: 'border-green-500 bg-green-900/30',
+    };
+    const triageLabels = { 1:'Critical', 2:'Emergency', 3:'Urgent', 4:'Semi-Urgent', 5:'Minor' };
+
+    async function loadQueue() {
+      try {
+        const res = await fetch(`/api/queue/status/?department=${dept}`);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const current = data.current_token;
+        document.getElementById('current-token').textContent = current ? '#' + current.token_number : '—';
+        document.getElementById('current-patient').textContent = current ? current.patient_name : 'Waiting for next patient';
+        document.getElementById('waiting-count').textContent = data.waiting_count;
+
+        const list = document.getElementById('queue-list');
+        if (!data.waiting_queue || !data.waiting_queue.length) {
+          list.innerHTML = '<div class="text-center text-slate-500 col-span-full py-8">No patients waiting</div>';
+          return;
+        }
+        list.innerHTML = data.waiting_queue.slice(0, 8).map(t => `
+          <div class="border-2 ${triageColors[t.triage_score] || 'border-slate-600 bg-slate-800'} rounded-2xl p-4 text-center">
+            <p class="text-3xl font-black">#${t.token_number}</p>
+            <p class="text-slate-300 text-sm mt-1 truncate">${t.patient_name || '—'}</p>
+            <p class="text-xs mt-1 opacity-70">${triageLabels[t.triage_score] || ''}</p>
+          </div>
+        `).join('');
+      } catch(e) {}
+    }
+
+    // Clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('date').textContent = now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+    loadQueue();
+    setInterval(loadQueue, 8000);
+  </script>
+</body>
+</html>

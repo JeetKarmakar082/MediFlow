@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Superuser — MediFlow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+    if (localStorage.getItem('theme') === 'dark' ||
+        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>* { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="min-h-screen flex" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);">
+
+  <!-- Left Panel -->
+  <div class="hidden lg:flex flex-1 flex-col items-center justify-center p-16 text-white">
+    <div class="max-w-md">
+      <div class="flex items-center gap-3 mb-10">
+        <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center">
+          <i class="fas fa-heartbeat text-white text-2xl"></i>
+        </div>
+        <span class="text-3xl font-bold">Medi<span class="text-blue-400">Flow</span></span>
+      </div>
+      <h1 class="text-4xl font-bold leading-tight mb-4">Set Up Your<br/>Admin Account</h1>
+      <p class="text-slate-400 text-lg mb-10">Create a superuser account to manage the entire MediFlow system — staff, patients, queues, and more.</p>
+      <div class="space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-blue-600/30 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-shield-halved text-blue-400 text-sm"></i>
+          </div>
+          <p class="text-slate-300 text-sm">Full admin access to all modules</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-blue-600/30 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-users-gear text-blue-400 text-sm"></i>
+          </div>
+          <p class="text-slate-300 text-sm">Manage staff, doctors, and departments</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-blue-600/30 rounded-lg flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-chart-line text-blue-400 text-sm"></i>
+          </div>
+          <p class="text-slate-300 text-sm">Access live dashboard and analytics</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel — Signup Form -->
+  <div class="flex-1 lg:max-w-md flex items-center justify-center p-8">
+    <div class="w-full max-w-sm">
+      <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-8">
+
+        <div class="flex items-center gap-2 mb-6">
+          <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
+            <i class="fas fa-heartbeat text-white text-sm"></i>
+          </div>
+          <span class="font-bold text-xl text-slate-800 dark:text-white">Medi<span class="text-blue-600">Flow</span></span>
+        </div>
+
+        <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-1">Create superuser</h2>
+        <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">This account will have full admin privileges.</p>
+
+        <form method="POST" action="/signup/" class="space-y-4">
+          {% csrf_token %}
+
+          <!-- First & Last Name row -->
+          <div class="flex gap-3">
+            <div class="flex-1">
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">First name</label>
+              <input name="first_name" type="text" autocomplete="given-name"
+                value="{{ form_data.first_name|default:'' }}"
+                class="w-full border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="First" />
+            </div>
+            <div class="flex-1">
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Last name</label>
+              <input name="last_name" type="text" autocomplete="family-name"
+                value="{{ form_data.last_name|default:'' }}"
+                class="w-full border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Last" />
+            </div>
+          </div>
+
+          <!-- Username -->
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Username <span class="text-red-500">*</span></label>
+            <input name="username" type="text" required autocomplete="username"
+              value="{{ form_data.username|default:'' }}"
+              class="w-full border {% if errors.username %}border-red-400 bg-red-50{% else %}border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400{% endif %} rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              placeholder="e.g. admin" />
+            {% if errors.username %}
+            <p class="text-xs text-red-500 mt-1">{{ errors.username }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
+            <input name="email" type="email" autocomplete="email"
+              value="{{ form_data.email|default:'' }}"
+              class="w-full border {% if errors.email %}border-red-400 bg-red-50{% else %}border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400{% endif %} rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              placeholder="admin@hospital.gov.in" />
+            {% if errors.email %}
+            <p class="text-xs text-red-500 mt-1">{{ errors.email }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Password <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input name="password" id="password" type="password" required autocomplete="new-password"
+                class="w-full border {% if errors.password %}border-red-400 bg-red-50{% else %}border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400{% endif %} rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Min. 8 characters" />
+              <button type="button" onclick="togglePwd('password', 'eye1')"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <i id="eye1" class="fas fa-eye text-sm"></i>
+              </button>
+            </div>
+            {% if errors.password %}
+            <p class="text-xs text-red-500 mt-1">{{ errors.password }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Confirm Password -->
+          <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Confirm password <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input name="password2" id="password2" type="password" required autocomplete="new-password"
+                class="w-full border {% if errors.password2 %}border-red-400 bg-red-50{% else %}border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-slate-400{% endif %} rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Re-enter password" />
+              <button type="button" onclick="togglePwd('password2', 'eye2')"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <i id="eye2" class="fas fa-eye text-sm"></i>
+              </button>
+            </div>
+            {% if errors.password2 %}
+            <p class="text-xs text-red-500 mt-1">{{ errors.password2 }}</p>
+            {% endif %}
+          </div>
+
+          <button type="submit"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-colors mt-2">
+            Create Superuser Account
+          </button>
+        </form>
+
+        <p class="text-center text-sm text-slate-500 dark:text-slate-400 mt-5">
+          Already have an account?
+          <a href="/login/" class="text-blue-600 font-medium hover:underline">Sign in</a>
+        </p>
+
+        <p class="text-center text-xs text-slate-400 dark:text-slate-500 mt-4">
+          Government District Hospital · MediFlow v1.0
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <button id="theme-toggle" title="Toggle dark mode"
+    class="fixed top-4 right-4 z-50 w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm transition-colors">
+    <i id="theme-icon" class="fas fa-moon text-sm"></i>
+  </button>
+
+  <script>
+    function togglePwd(fieldId, iconId) {
+      const input = document.getElementById(fieldId);
+      const icon  = document.getElementById(iconId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash text-sm';
+      } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye text-sm';
+      }
+    }
+  </script>
+  <script>
+    (function() {
+      const btn = document.getElementById('theme-toggle');
+      const icon = document.getElementById('theme-icon');
+      function applyTheme(dark) {
+        if (dark) {
+          document.documentElement.classList.add('dark');
+          icon.className = 'fas fa-sun text-sm';
+          localStorage.setItem('theme', 'dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          icon.className = 'fas fa-moon text-sm';
+          localStorage.setItem('theme', 'light');
+        }
+      }
+      applyTheme(document.documentElement.classList.contains('dark'));
+      btn.addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
+    })();
+  </script>
+</body>
+</html>
