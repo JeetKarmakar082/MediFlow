@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}MediFlow — Smart Hospital System{% endblock %}</title>
-  <!-- Apply saved theme before page renders to avoid flash -->
   <script>
     if (localStorage.getItem('theme') === 'dark' ||
         (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -62,16 +61,21 @@
       </div>
     </div>
 
-    <!-- Center — Hospital Name -->
     <div class="hidden md:block text-center">
       <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Government District Hospital</p>
       <p class="text-xs text-slate-400 dark:text-slate-400">Smart Patient Flow Management System</p>
     </div>
 
-    <!-- Right -->
     <div class="flex items-center gap-3">
 
-      <!-- Dark Mode Toggle -->
+      {% if is_admin %}
+      <a href="/admin/" title="Django Admin Panel"
+        class="w-9 h-9 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-300 hover:bg-violet-100 dark:hover:bg-violet-900/30 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+        target="_blank">
+        <i class="fas fa-tools text-sm"></i>
+      </a>
+      {% endif %}
+
       <button id="theme-toggle" title="Toggle dark mode"
         class="w-9 h-9 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
         <i id="theme-icon" class="fas fa-moon text-sm"></i>
